@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Blog - Home</title>
+</head>
+<body>
+<h1>Simple Blog</h1>
+
+<div id="posts"></div>
+
+<button onclick="window.location.href='newpost.html'">New Post</button>
+
+<script>
+  function renderPosts() {
+    const posts = JSON.parse(localStorage.getItem("posts")) || [];
+    const postsContainer = document.getElementById("posts");
+    postsContainer.innerHTML = "";
+    posts.forEach(post => {
+      const postElement = document.createElement("div");
+      postElement.innerHTML = `
+        <h2>${post.title}</h2>
+        <p>${post.body}</p>
+        <button onclick="editPost(${post.id})">Edit</button>
+        <button onclick="deletePost(${post.id})">Delete</button>
+      `;
+      postsContainer.appendChild(postElement);
+    });
+  }
+
+  function editPost(postId) {
+    window.location.href = `editpost.html?postId=${postId}`;
+  }
+
+  function deletePost(postId) {
+    const posts = JSON.parse(localStorage.getItem("posts")) || [];
+    const updatedPosts = posts.filter(post => post.id !== postId);
+    localStorage.setItem("posts", JSON.stringify(updatedPosts));
+    renderPosts();
+  }
+
+  renderPosts();
+</script>
+
+</body>
+</html>
