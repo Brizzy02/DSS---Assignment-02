@@ -7,6 +7,10 @@ app.get("/", (req, res) => {
 	res.redirect("index");
 });
 
+app.get("/index", (req, res) => {
+	res.render("index");
+});
+
 app.get("/editpost", (req, res) => {
 	res.render("editpost");
 });
@@ -16,4 +20,4 @@ app.get("/newpost", (req, res) => {
 });
 
 
-app.listen(3000)
+app.listen(4000)
