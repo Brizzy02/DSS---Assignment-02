@@ -19,5 +19,5 @@ app.get("/newpost", (req, res) => {
 	res.render("newpost");
 });
 
-//test
+//tests
 app.listen(4000)
