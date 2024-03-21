@@ -7,7 +7,7 @@
 </head>
 <body>
 <h1>Edit Post</h1>
-
+<!--
 <form id="postForm">
   <label for="postTitle">Title:</label><br>
   <input type="text" id="postTitle" name="postTitle"><br>
@@ -44,12 +44,12 @@
         return post;
       });
       localStorage.setItem("posts", JSON.stringify(updatedPosts));
-      window.location.href = "index.html";
+      window.location.href = '/index';
     } else {
       alert("Please enter both title and body.");
     }
   });
 </script>
-
+-->
 </body>
 </html>

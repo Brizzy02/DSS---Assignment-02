@@ -7,7 +7,7 @@
 </head>
 <body>
 <h1>New Post</h1>
-
+<!--
 <form id="postForm">
   <label for="postTitle">Title:</label><br>
   <input type="text" id="postTitle" name="postTitle"><br>
@@ -28,12 +28,12 @@
       const posts = JSON.parse(localStorage.getItem("posts")) || [];
       posts.push(post);
       localStorage.setItem("posts", JSON.stringify(posts));
-      window.location.href = "index.html";
+      window.location.href = '/index';
     } else {
       alert("Please enter both title and body.");
     }
   });
 </script>
-
+-->
 </body>
 </html>

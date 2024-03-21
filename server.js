@@ -1,7 +1,7 @@
 const express = require("express")
 const app = express()
 
-app.set('view engine', 'ejs')
+app.set('view engine', 'ejs');
 
 app.get("/", (req, res) => {
 	res.redirect("index");
@@ -17,3 +17,4 @@ app.get("/newpost", (req, res) => {
 
 
 app.listen(3000)
+
