@@ -10,7 +10,7 @@
 
 <div id="posts"></div>
 
-<button onclick="window.location.href='newpost.html'">New Post</button>
+<button onclick="window.location.href='newpost'">New Post</button>
 
 <script>
   function renderPosts() {
@@ -30,7 +30,7 @@
   }
 
   function editPost(postId) {
-    window.location.href = `editpost.html?postId=${postId}`;
+    window.location.href = `editpost?postId=${postId}`;
   }
 
   function deletePost(postId) {
