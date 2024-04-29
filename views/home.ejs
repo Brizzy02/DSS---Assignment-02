@@ -32,6 +32,22 @@
         })
         .catch(error => console.error('Error:', error));
     }
+  function signOut() {
+        fetch('/signout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/'; // Redirect to the index page
+            } else {
+                console.error('Sign out failed');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
   function renderPosts() {
     const posts = JSON.parse(localStorage.getItem("posts")) || [];
     const postsContainer = document.getElementById("posts");
@@ -49,6 +65,7 @@
   }
 
   function editPost(postId) {
+    window.location.href = `editpost?postId=${postId}`;
     window.location.href = `editpost?postId=${postId}`;
   }
 
