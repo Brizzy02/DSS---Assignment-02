@@ -24,6 +24,7 @@ app.get("/newpost", (req, res) => {
     res.render("newpost");
 });
 
+<<<<<<< HEAD
 // Serve static files from the public directory
 app.use(express.static('public'));
 
@@ -70,3 +71,7 @@ app.get('/signout', (req, res) => {
 });
 
 
+=======
+//tests
+app.listen(4000)
+>>>>>>> 4d998e194b3446395b18498e56afc53d5da9d6c7
