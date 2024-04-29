@@ -1,47 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Blog - Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Blog - Login</title>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 300px;
+            margin: 0 auto;
+        }
+        .btn {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .btn button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .form-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .ele {
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .clkbtn {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        /* Initially hide the signup form */
+        .signup-box {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-<h1>Simple Blog</h1>
+    <header>
+        <h1 class="heading">Simple Blog</h1>
+        <h3 class="title">Login & Registration Form</h3>
+    </header>
+    <div class="container">
+        <div class="btn">
+            <button class="login active">Login</button>
+            <button class="signup">Signup</button>
+        </div>
+        <div class="form-section">
+            <div class="login-box">
+                <form action="/login" method="post">
+                    <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
+                    <input type="password" class="password ele" placeholder="password" name="password" required>
+                    <button type="submit" class="clkbtn">Login</button>
+                </form>
+            </div>
+            
+            <div class="signup-box">
+                <input type="text" class="name ele" placeholder="Enter your name">
+                <input type="email" class="email ele" placeholder="youremail@email.com">
+                <input type="password" class="password ele" placeholder="password">
+                <input type="password" class="password ele" placeholder="Confirm password">
+                <button class="clkbtn">Signup</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.btn button').forEach(item => {
+            item.addEventListener('click', event => {
+                let btnType = event.target.classList.contains('login') ? 'login' : 'signup';
+                document.querySelectorAll('.btn button').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                document.querySelectorAll('.form-section > div').forEach(form => {
+                    form.style.display = form.classList.contains(btnType + '-box') ? 'block' : 'none';
+                });
+            });
+        });
 
-<div id="posts"></div>
-
-<button onclick="window.location.href='newpost'">New Post</button>
-
-<script>
-  function renderPosts() {
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    const postsContainer = document.getElementById("posts");
-    postsContainer.innerHTML = "";
-    posts.forEach(post => {
-      const postElement = document.createElement("div");
-      postElement.innerHTML = `
-        <h2>${post.title}</h2>
-        <p>${post.body}</p>
-        <button onclick="editPost(${post.id})">Edit</button>
-        <button onclick="deletePost(${post.id})">Delete</button>
-      `;
-      postsContainer.appendChild(postElement);
-    });
-  }
-
-  function editPost(postId) {
-    window.location.href = `editpost?postId=${postId}`;
-  }
-
-  function deletePost(postId) {
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    const updatedPosts = posts.filter(post => post.id !== postId);
-    localStorage.setItem("posts", JSON.stringify(updatedPosts));
-    renderPosts();
-  }
-
-  renderPosts();
-</script>
-
+        document.querySelectorAll('.clkbtn').forEach(btn => {
+            btn.addEventListener('click', event => {
+                
+                let formType = event.target.parentElement.classList.contains('login-box') ? 'login' : 'signup';
+                console.log(`${formType.charAt(0).toUpperCase() + formType.slice(1)} form submitted.`);
+                // Here you can add code to handle form submission, e.g., send data to a server.
+            });
+        });
+    </script>
 </body>
 </html>
