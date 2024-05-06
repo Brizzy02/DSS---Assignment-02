@@ -3,34 +3,29 @@ const app = express();
 const port = 4000;
 
 app.set('view engine', 'ejs');
-app.set('view engine', 'ejs');
 
 app.get("/", (req, res) => {
     console.log("Rendering index page"); // Debugging statement
     res.render("index");
-    console.log("Rendering index page"); // Debugging statement
-    res.render("index");
+
 });
 
 app.get("/index", (req, res) => {
     console.log("Rendering index page"); // Debugging statement
     res.render("index");
-    console.log("Rendering index page"); // Debugging statement
-    res.render("index");
+
 });
 
 app.get("/editpost", (req, res) => {
     console.log("Rendering editpost page"); // Debugging statement
     res.render("editpost");
-    console.log("Rendering editpost page"); // Debugging statement
-    res.render("editpost");
+
 });
 
 app.get("/newpost", (req, res) => {
     console.log("Rendering newpost page"); // Debugging statement
     res.render("newpost");
-    console.log("Rendering newpost page"); // Debugging statement
-    res.render("newpost");
+
 });
 
 
@@ -46,11 +41,6 @@ app.post('/login', (req, res) => {
     console.log("Email:", req.body.email); // Debugging statement
     console.log("Password:", req.body.password); // Debugging statement
 
-    // Here, you would typically check the user's credentials against a database
-    // For simplicity, let's assume the login is always successful
-    // In a real application, replace this with actual authentication logic
-
-    // Redirect to the home page upon successful login
     res.redirect('/home');
 });
 
