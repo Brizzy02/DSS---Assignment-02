@@ -1,83 +1,197 @@
+
+
 const express = require("express");
 const app = express();
 const port = 4000;
-
+const rateLimit = require('express-rate-limit');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 app.set('view engine', 'ejs');
-app.set('view engine', 'ejs');
+
+const session = require('express-session');
+// Configure the rate limiter
+
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after an hour'
+   });
+
+// Apply the rate limiter to all routes
+app.use(limiter);
+
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+        httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
+        maxAge: 3600000 // Session expires after 1 hour (in milliseconds)
+    }
+}));
+
+
+app.get("/signup", (req, res) => {
+    console.log("Rendering signup page");
+    res.render("signup"); // Make sure this matches the name of your EJS file
+});
+
 
 app.get("/", (req, res) => {
-    console.log("Rendering index page"); // Debugging statement
-    res.render("index");
-    console.log("Rendering index page"); // Debugging statement
-    res.render("index");
+    console.log("Rendering index page");
+    res.render("index", {sessionId: req.sessionID});
 });
 
 app.get("/index", (req, res) => {
-    console.log("Rendering index page"); // Debugging statement
-    res.render("index");
-    console.log("Rendering index page"); // Debugging statement
+    console.log("Rendering index page");
     res.render("index");
 });
 
 app.get("/editpost", (req, res) => {
-    console.log("Rendering editpost page"); // Debugging statement
-    res.render("editpost");
-    console.log("Rendering editpost page"); // Debugging statement
+    console.log("Rendering editpost page");
     res.render("editpost");
 });
 
 app.get("/newpost", (req, res) => {
-    console.log("Rendering newpost page"); // Debugging statement
-    res.render("newpost");
-    console.log("Rendering newpost page"); // Debugging statement
+    console.log("Rendering newpost page");
     res.render("newpost");
 });
 
-
-// Serve static files from the public directory
 app.use(express.static('public'));
-
-// Parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true }));
 
-// Debugging statement for POST request
-app.post('/login', (req, res) => {
-    console.log("Login attempt received"); // Debugging statement
-    console.log("Email:", req.body.email); // Debugging statement
-    console.log("Password:", req.body.password); // Debugging statement
 
-    // Here, you would typically check the user's credentials against a database
-    // For simplicity, let's assume the login is always successful
-    // In a real application, replace this with actual authentication logic
+app.post('/login', (req, res, next) => {
+    console.log("Login attempt received");
+    console.log("Email:", req.body.email);
+    console.log("Password:", req.body.password); // Be cautious with logging passwords
+    console.log("Captcha:", req.body.captcha);
 
-    // Redirect to the home page upon successful login
-    res.redirect('/home');
+    const { email, password, captcha } = req.body;
+
+    // Check if the captcha entered by the user matches the one stored in the session
+    if (captcha !== req.session.captcha) {
+        console.log("Captcha verification failed");
+        return res.status(401).send('Captcha verification failed');
+    }
+
+    // Query the database for the user
+    pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
+        if (error) {
+            console.error("Database query error:", error);
+            return res.status(500).send('Database query error');
+        }
+
+        if (results.rows.length === 0) {
+            console.log("No user found with the provided email");
+            return res.status(401).send('No user found with the provided email');
+        }
+
+        const user = results.rows[0];
+        bcrypt.compare(password, user.password, (err, isMatch) => {
+            if (err) {
+                console.error("Error comparing passwords:", err);
+                return res.status(500).send('Error comparing passwords');
+            }
+
+            if (!isMatch) {
+                console.log("Password does not match");
+                return res.status(401).send('Password does not match');
+            }
+
+            console.log("Login successful");
+            res.redirect('/home');
+        });
+    });
 });
 
+
+
+const svgCaptcha = require('svg-captcha');
+
+app.get('/captcha', (req, res) => {
+    const captcha = svgCaptcha.create();
+    req.session.captcha = captcha.text;
+
+    res.type('svg');
+    res.status(200).send(captcha.data);
+});
+
+
+
 app.get('/home', (req, res) => {
-    console.log("Rendering home page"); // Debugging statement
+    console.log("Rendering home page");
     res.render('home');
+});
+
+app.post('/signout', (req, res, next) => {
+    req.session.destroy(err => {
+        if (err) {
+            next(new Error('Error signing out'));
+        } else {
+            res.clearCookie('connect.sid');
+            res.redirect('/signout');
+        }
+    });
+});
+
+
+app.post('/signup', async (req, res) => {
+    console.log('Signup request received'); // Log when a signup request is received
+    console.log('Request body:', req.body); // Debug statement to log the request body
+
+    const { username, email, password } = req.body;
+    console.log('Received data:', { username, email, password }); // Log received data
+
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        console.log('Password hashed successfully'); // Log successful password hashing
+
+        // Insert the user into the database with the hashed password and unhashed password
+        const query = 'INSERT INTO users (username, email, password, unhashed_password) VALUES ($1, $2, $3, $4)';
+        const values = [username, email, hashedPassword, password]; // Include the unhashed password
+
+        await pool.query(query, values);
+        console.log('User inserted into database'); // Log successful user insertion
+
+        res.json({ message: 'User created successfully' });
+    } catch (error) {
+        console.error('Error during signup:', error); // Log any errors
+        res.status(500).json({ error: 'An error occurred during signup.' });
+    }
+});
+
+
+
+
+app.get('/signout', (req, res) => {
+    res.render('signout');
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
 });
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
 
-app.post('/signout', (req, res) => {
-    // Assuming you're using Express sessions
-    req.session.destroy(err => {
-        if (err) {
-            return res.status(500).send('Error signing out');
-        }
-        res.clearCookie('connect.sid'); // Clear the session cookie
-        res.redirect('/signout'); // Redirect to the signout page
-    });
+
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+ connectionString: process.env.DATABASE_URL,
 });
 
-// Add a route to render the signout.ejs page
-app.get('/signout', (req, res) => {
-    res.render('signout');
-});
 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 

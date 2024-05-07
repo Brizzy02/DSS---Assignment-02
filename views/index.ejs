@@ -18,13 +18,14 @@
             justify-content: space-around;
             margin-bottom: 20px;
         }
-        .btn button {
+        .btn button, .btn a { /* Apply styles to both buttons and links */
             padding: 10px;
             font-size: 16px;
             cursor: pointer;
             background-color: #4CAF50;
             color: white;
             border: none;
+            text-decoration: none; /* Remove underline from links */
         }
         .form-section {
             display: flex;
@@ -57,7 +58,7 @@
     <div class="container">
         <div class="btn">
             <button class="login active">Login</button>
-            <button class="signup">Signup</button>
+            <a href="/signup" class="signup">Signup</a> <!-- Changed to an <a> tag -->
         </div>
         <div class="form-section">
             <div class="login-box">
@@ -65,6 +66,10 @@
                     <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
                     <input type="password" class="password ele" placeholder="password" name="password" required>
                     <button type="submit" class="clkbtn">Login</button>
+                    <img src="/captcha" alt="CAPTCHA" id="captcha-image">
+                    <input type="text" name="captcha" placeholder="Enter CAPTCHA">
+                    <input type="hidden" name="sessionId" value="<%= sessionId %>">
+                    <button type="submit">Login</button>
                 </form>
             </div>
             
@@ -78,10 +83,10 @@
         </div>
     </div>
     <script>
-        document.querySelectorAll('.btn button').forEach(item => {
+        document.querySelectorAll('.btn button, .btn a').forEach(item => {
             item.addEventListener('click', event => {
                 let btnType = event.target.classList.contains('login') ? 'login' : 'signup';
-                document.querySelectorAll('.btn button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.btn button, .btn a').forEach(btn => btn.classList.remove('active'));
                 event.target.classList.add('active');
                 document.querySelectorAll('.form-section > div').forEach(form => {
                     form.style.display = form.classList.contains(btnType + '-box') ? 'block' : 'none';
@@ -91,56 +96,11 @@
 
         document.querySelectorAll('.clkbtn').forEach(btn => {
             btn.addEventListener('click', event => {
-                
                 let formType = event.target.parentElement.classList.contains('login-box') ? 'login' : 'signup';
                 console.log(`${formType.charAt(0).toUpperCase() + formType.slice(1)} form submitted.`);
                 // Here you can add code to handle form submission, e.g., send data to a server.
             });
         });
     </script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Blog - Home</title>
-</head>
-<body>
-\
-
-
-
-
-<script>
-  function signOut() {
-        fetch('/signout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.href = '/'; // Redirect to the index page
-            } else {
-                console.error('Sign out failed');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-  function renderPosts() {
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    const postsContainer = document.getElementById("posts");
-    postsContainer.innerHTML = "";
-    posts.forEach(post => {
-      const postElement = document.createElement("div");
-      postElement.innerHTML = `
-        <h2>${post.title}</h2>
-        <p>${post.body}</p>
-        <button onclick="editPost(${post.id})">Edit</button>
-        <button onclick="deletePost(${post.id})">Delete</button>
-      `;
-      postsContainer.appendChild(postElement);
-    });
-  }
-
-</script>
 </body>
 </html>
