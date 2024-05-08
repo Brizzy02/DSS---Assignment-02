@@ -147,14 +147,18 @@ app.post('/signup', async (req, res) => {
     console.log('Received data:', { username, email, password }); // Log received data
 
     try {
+        // First, check if the username already exists
+        const userExists = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (userExists.rows.length > 0) {
+            return res.status(409).json({ error: 'Username already exists.' }); // 409 Conflict
+        }
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         console.log('Password hashed successfully'); // Log successful password hashing
 
         // Insert the user into the database with the hashed password and unhashed password
-        const query = 'INSERT INTO users (username, email, password, unhashed_password) VALUES ($1, $2, $3, $4)';
-        const values = [username, email, hashedPassword, password]; // Include the unhashed password
-
+        const query = 'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)';
+        const values = [username, email, hashedPassword];
         await pool.query(query, values);
         console.log('User inserted into database'); // Log successful user insertion
 
@@ -164,7 +168,6 @@ app.post('/signup', async (req, res) => {
         res.status(500).json({ error: 'An error occurred during signup.' });
     }
 });
-
 
 
 
