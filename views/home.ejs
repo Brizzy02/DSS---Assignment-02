@@ -24,9 +24,38 @@
  </form>
 </div>
 
+
+<div id="editPostForm" style="display: none;">
+  <h2>Edit Post</h2>
+  <form id="editForm">
+     <input type="hidden" id="editPostId" name="postId">
+     <label for="editPostTitle">Title:</label><br>
+     <input type="text" id="editPostTitle" name="postTitle"><br>
+     <label for="editPostBody">Body:</label><br>
+     <textarea id="editPostBody" name="postBody"></textarea><br>
+     <button type="submit">Update Post</button>
+  </form>
+ </div>
+
 <script>
  const sessionId = '<%= sessionId %>';
  console.log('Session ID:', sessionId);
+ function createPost(title, body) {
+    fetch('/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, body }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Post created:', data);
+      renderPosts();
+    })
+    .catch(error => console.error('Error:', error));
+ }
+
 
  function signOut() {
     fetch('/signout', {
@@ -46,50 +75,131 @@
  }
 
  function renderPosts() {
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    const postsContainer = document.getElementById("posts");
-    postsContainer.innerHTML = "";
-    posts.forEach(post => {
-      const postElement = document.createElement("div");
-      postElement.innerHTML = `
-        <h2>${post.title}</h2>
-        <p>${post.body}</p>
-        <button onclick="editPost(${post.id})">Edit</button>
-        <button onclick="deletePost(${post.id})">Delete</button>
-      `;
-      postsContainer.appendChild(postElement);
-    });
- }
+    fetch('/posts')
+      .then(response => response.json())
+      .then(posts => {
+        const postsContainer = document.getElementById("posts");
+        postsContainer.innerHTML = "";
+        posts.forEach(post => {
+          const postElement = document.createElement("div");
+          postElement.innerHTML = `
+            <h2>${post.title}</h2>
+            <p>${post.content}</p>
+            <button onclick="editPost(${post.id})">Edit</button>
+            <button onclick="deletePost(${post.id})">Delete</button>
+          `;
+          postsContainer.appendChild(postElement);
+        });
+      })
+      .catch(error => console.error('Error:', error));
+}
 
- function editPost(postId) {
-    window.location.href = `editpost?postId=${postId}`;
- }
+
+function editPost(postId) {
+    console.log('Editing post with ID:', postId);
+
+    // Get the userId from the server-side session
+    fetch('/user')
+      .then(response => response.json())
+      .then(user => {
+        const userId = user.id;
+        console.log('User ID:', userId);
+
+        fetch(`/posts/${postId}?userId=${userId}`)
+          .then(response => {
+            console.log('Response status:', response.status);
+
+            if (response.ok) {
+              return response.json();
+            } else if (response.status === 403) {
+              throw new Error('Unable to edit posts that were not made by you');
+            } else {
+              throw new Error('An error occurred while retrieving the post');
+            }
+          })
+          .then(post => {
+            if (post) {
+              document.getElementById('editPostId').value = post.id;
+              document.getElementById('editPostTitle').value = post.title;
+              document.getElementById('editPostBody').value = post.content;
+              document.getElementById('editPostForm').style.display = 'block';
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+          });
+      })
+      .catch(error => {
+        console.error('Error retrieving user:', error);
+        alert('An error occurred while retrieving the user.');
+      });
+}
+
+
+
+
+
+
+function updatePost(postId, title, body) {
+    fetch(`/posts/${postId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, body }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Post updated:', data);
+      document.getElementById('editPostForm').style.display = 'none';
+      renderPosts();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
 
  function deletePost(postId) {
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    const updatedPosts = posts.filter(post => post.id !== postId);
-    localStorage.setItem("posts", JSON.stringify(updatedPosts));
-    renderPosts();
- }
+    fetch(`/posts/${postId}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (response.ok) {
+            renderPosts();
+        } else {
+            console.error('Delete post failed');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
  function showNewPostForm() {
     document.getElementById("newPostForm").style.display = "block";
  }
 
+ 
+ 
  document.getElementById("postForm").addEventListener("submit", function(event) {
     event.preventDefault();
     const title = document.getElementById("postTitle").value;
     const body = document.getElementById("postBody").value;
     if (title.trim() && body.trim()) {
-      const post = { id: Date.now(), title, body };
-      const posts = JSON.parse(localStorage.getItem("posts")) || [];
-      posts.push(post);
-      localStorage.setItem("posts", JSON.stringify(posts));
-      window.location.href = "home";
+      createPost(title, body);
+      document.getElementById("postTitle").value = "";
+      document.getElementById("postBody").value = "";
+      document.getElementById("newPostForm").style.display = "none";
     } else {
       alert("Please enter both title and body.");
     }
  });
+
+ document.getElementById('editForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const postId = document.getElementById('editPostId').value;
+    const title = document.getElementById('editPostTitle').value;
+    const body = document.getElementById('editPostBody').value;
+    updatePost(postId, title, body);
+});
 
  renderPosts();
 </script>

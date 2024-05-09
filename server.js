@@ -5,7 +5,7 @@ const app = express();
 const port = 4000;
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
-const saltRounds = 10;  
+const saltRounds = 10;
 require('dotenv').config();
 
 app.set('view engine', 'ejs');
@@ -62,13 +62,156 @@ app.get("/editpost", (req, res) => {
     res.render("editpost");
 });
 
-app.get("/newpost", (req, res) => {
-    console.log("Rendering newpost page");
-    res.render("newpost");
-});
+
+
+
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Add this line to parse JSON request bodies
+
+app.post('/posts', async (req, res) => {
+    const { title, body } = req.body;
+    const userId = req.session.userId; // Get the user ID from the session
+
+    if (!userId) {
+        // If the user is not logged in (no user ID in the session), return an error
+        return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    try {
+        const query = 'INSERT INTO posts (user_id, title, content) VALUES ($1, $2, $3) RETURNING *';
+        const values = [userId, title, body];
+
+        const result = await pool.query(query, values);
+        const createdPost = result.rows[0];
+
+        res.json(createdPost);
+    } catch (error) {
+        console.error('Error creating post:', error);
+        res.status(500).json({ error: 'An error occurred while creating the post.' });
+    }
+});
+
+app.get('/posts', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM posts';
+        const result = await pool.query(query);
+        const posts = result.rows;
+
+        res.json(posts);
+    } catch (error) {
+        console.error('Error retrieving posts:', error);
+        res.status(500).json({ error: 'An error occurred while retrieving the posts.' });
+    }
+});
+app.delete('/posts/:id', async (req, res) => {
+    const postId = req.params.id;
+    const userId = req.session.userId; // Get the user ID from the session
+
+    if (!userId) {
+        // If the user is not logged in (no user ID in the session), return an error
+        return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    try {
+        // Retrieve the post from the database
+        const query = 'SELECT * FROM posts WHERE id = $1';
+        const result = await pool.query(query, [postId]);
+        const post = result.rows[0];
+
+        if (!post) {
+            // If the post doesn't exist, return an error
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        if (post.user_id !== userId) {
+            // If the user ID of the post doesn't match the logged-in user ID, return an error
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        // Delete the post from the database
+        const deleteQuery = 'DELETE FROM posts WHERE id = $1';
+        await pool.query(deleteQuery, [postId]);
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        res.status(500).json({ error: 'An error occurred while deleting the post.' });
+    }
+});
+app.get('/posts/:id', async (req, res) => {
+    const postId = req.params.id;
+    const userId = req.query.userId;
+
+    console.log('Retrieving post with ID:', postId);
+    console.log('User ID:', userId);
+
+    try {
+        const query = 'SELECT * FROM posts WHERE id = $1';
+        const result = await pool.query(query, [postId]);
+        const post = result.rows[0];
+
+        if (!post) {
+            console.log('Post not found');
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        if (post.user_id !== parseInt(userId)) {
+            console.log('Unauthorized access');
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        res.json(post);
+    } catch (error) {
+        console.error('Error retrieving post:', error);
+        res.status(500).json({ error: 'An error occurred while retrieving the post.' });
+    }
+});
+
+
+app.get('/user', (req, res) => {
+    const userId = req.session.userId;
+    console.log('User ID in session:', userId);
+
+    if (userId) {
+        res.json({ id: userId });
+    } else {
+        res.status(401).json({ error: 'User not authenticated' });
+    }
+});
+
+
+
+
+
+
+app.put('/posts/:id', async (req, res) => {
+    const postId = req.params.id;
+    const { title, body } = req.body;
+    const userId = req.session.userId;
+
+    if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    try {
+        const query = 'UPDATE posts SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *';
+        const values = [title, body, postId, userId];
+
+        const result = await pool.query(query, values);
+        const updatedPost = result.rows[0];
+
+        if (!updatedPost) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        res.json(updatedPost);
+    } catch (error) {
+        console.error('Error updating post:', error);
+        res.status(500).json({ error: 'An error occurred while updating the post.' });
+    }
+});
 
 
 app.post('/login', (req, res, next) => {
