@@ -8,13 +8,14 @@
 <body>
 <h1>New Post</h1>
 
-<form id="postForm">
+<form id="postForm" action="/createpost" method="post">
   <label for="postTitle">Title:</label><br>
-  <input type="text" id="postTitle" name="postTitle"><br>
+  <input type="text" id="postTitle" name="postTitle" required><br>
   <label for="postBody">Body:</label><br>
-  <textarea id="postBody" name="postBody"></textarea><br>
+  <textarea id="postBody" name="postBody" required></textarea><br>
   <button type="submit">Create Post</button>
 </form>
+
 
 <script>
   const postForm = document.getElementById("postForm");
