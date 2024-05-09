@@ -28,8 +28,8 @@
       const posts = JSON.parse(localStorage.getItem("posts")) || [];
       posts.push(post);
       localStorage.setItem("posts", JSON.stringify(posts));
-      window.location.href = "index";
-      window.location.href = "index";
+      window.location.href = "home";
+      window.location.href = "home";
     } else {
       alert("Please enter both title and body.");
     }

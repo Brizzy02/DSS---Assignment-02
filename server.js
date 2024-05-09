@@ -6,6 +6,7 @@ const port = 4000;
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+require('dotenv').config();
 
 app.set('view engine', 'ejs');
 
@@ -15,7 +16,7 @@ const session = require('express-session');
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // limit each IP to 100 requests per windowMs
+    max: 1000, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again after an hour'
    });
 
@@ -32,6 +33,12 @@ app.use(session({
         maxAge: 3600000 // Session expires after 1 hour (in milliseconds)
     }
 }));
+
+app.use(function(req, res, next) {
+    // Make sessionId available to all views
+    res.locals.sessionId = req.sessionID;
+    next();
+});
 
 
 app.get("/signup", (req, res) => {
@@ -181,14 +188,23 @@ app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
 
+console.log('Database URL:', process.env.DATABASE_URL);
 
-require('dotenv').config();
+
 const { Pool } = require('pg');
-
 const pool = new Pool({
- connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL,
 });
 
+
+// Test query to check database connection
+pool.query('SELECT NOW()', (err, res) => {
+ if (err) {
+   console.error('Database connection error:', err);
+ } else {
+   console.log('Database connection successful');
+ }
+});
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

@@ -16,6 +16,8 @@
 
 
 <script>
+  const sessionId = '<%= sessionId %>';
+    console.log('Session ID:', sessionId);
   function signOut() {
         fetch('/signout', {
             method: 'POST',
