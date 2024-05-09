@@ -10,47 +10,42 @@
 
 <div id="posts"></div>
 
-<button onclick="window.location.href='newpost'">New Post</button>
-<button onclick="window.location.href='/signout'">Sign Out</button>
+<button onclick="showNewPostForm()">New Post</button>
+<button onclick="signOut()">Sign Out</button>
 
-
+<div id="newPostForm" style="display: none;">
+ <h2>New Post</h2>
+ <form id="postForm">
+    <label for="postTitle">Title:</label><br>
+    <input type="text" id="postTitle" name="postTitle"><br>
+    <label for="postBody">Body:</label><br>
+    <textarea id="postBody" name="postBody"></textarea><br>
+    <button type="submit">Create Post</button>
+ </form>
+</div>
 
 <script>
-  const sessionId = '<%= sessionId %>';
-    console.log('Session ID:', sessionId);
-  function signOut() {
-        fetch('/signout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.href = '/'; // Redirect to the index page
-            } else {
-                console.error('Sign out failed');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-  function signOut() {
-        fetch('/signout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.href = '/'; // Redirect to the index page
-            } else {
-                console.error('Sign out failed');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-  function renderPosts() {
+ const sessionId = '<%= sessionId %>';
+ console.log('Session ID:', sessionId);
+
+ function signOut() {
+    fetch('/signout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.href = '/'; // Redirect to the index page
+      } else {
+        console.error('Sign out failed');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+ }
+
+ function renderPosts() {
     const posts = JSON.parse(localStorage.getItem("posts")) || [];
     const postsContainer = document.getElementById("posts");
     postsContainer.innerHTML = "";
@@ -64,21 +59,39 @@
       `;
       postsContainer.appendChild(postElement);
     });
-  }
+ }
 
-  function editPost(postId) {
+ function editPost(postId) {
     window.location.href = `editpost?postId=${postId}`;
-    window.location.href = `editpost?postId=${postId}`;
-  }
+ }
 
-  function deletePost(postId) {
+ function deletePost(postId) {
     const posts = JSON.parse(localStorage.getItem("posts")) || [];
     const updatedPosts = posts.filter(post => post.id !== postId);
     localStorage.setItem("posts", JSON.stringify(updatedPosts));
     renderPosts();
-  }
+ }
 
-  renderPosts();
+ function showNewPostForm() {
+    document.getElementById("newPostForm").style.display = "block";
+ }
+
+ document.getElementById("postForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    const title = document.getElementById("postTitle").value;
+    const body = document.getElementById("postBody").value;
+    if (title.trim() && body.trim()) {
+      const post = { id: Date.now(), title, body };
+      const posts = JSON.parse(localStorage.getItem("posts")) || [];
+      posts.push(post);
+      localStorage.setItem("posts", JSON.stringify(posts));
+      window.location.href = "home";
+    } else {
+      alert("Please enter both title and body.");
+    }
+ });
+
+ renderPosts();
 </script>
 
 </body>

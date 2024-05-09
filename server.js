@@ -5,7 +5,7 @@ const app = express();
 const port = 4000;
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
-const saltRounds = 10;
+const saltRounds = 10;  
 require('dotenv').config();
 
 app.set('view engine', 'ejs');
@@ -110,10 +110,17 @@ app.post('/login', (req, res, next) => {
             }
 
             console.log("Login successful");
-            res.redirect('/home');
+            // Store the userId in the session
+            req.session.userId = user.id;
+            // Save the session before redirecting
+            req.session.save(function (err) {
+                if (err) return next(err);
+                res.redirect('/home');
+            });
         });
     });
 });
+
 
 
 
