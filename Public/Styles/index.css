@@ -1,0 +1,80 @@
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    padding: 20px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Align vertically center */
+}
+
+.container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px; /* Limit max width for better visual structure */
+}
+
+h1, h3 {
+    text-align: center; /* Center align titles */
+    margin-bottom: 20px;
+}
+
+.btn button, .btn a, .clkbtn {
+    width: 100%; /* Full width buttons */
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border: none;
+    color: white;
+    background-color: #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    display: block; /* Ensure buttons take full width */
+}
+
+.btn a {
+    text-align: center;
+    display: block;
+    margin-top: 20px; /* Spacing between login and signup */
+}
+
+input[type="email"], input[type="password"], input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px; /* Increase margin for better spacing */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    height: 100px; /* Fixed height for textarea */
+    margin-bottom: 15px;
+}
+
+input[type="submit"]:hover, .clkbtn:hover {
+    background-color: #0056b3; /* Darker shade for hover */
+}
+
+/* Focus styles for better accessibility */
+input:focus, button:focus, a:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+/* Style the CAPTCHA */
+#captcha-image {
+    margin-top: 10px;
+    width: 100%; /* Responsive image width */
+    height: auto;
+}
+</style>
