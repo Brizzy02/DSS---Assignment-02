@@ -115,8 +115,6 @@ app.post('/login', (req, res, next) => {
     });
 });
 
-
-
 const svgCaptcha = require('svg-captcha');
 
 app.get('/captcha', (req, res) => {
@@ -172,9 +170,6 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-
-
-
 app.get('/signout', (req, res) => {
     res.render('signout');
 });
@@ -189,7 +184,6 @@ app.listen(port, () => {
 });
 
 console.log('Database URL:', process.env.DATABASE_URL);
-
 
 const { Pool } = require('pg');
 const pool = new Pool({
@@ -210,4 +204,3 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-
