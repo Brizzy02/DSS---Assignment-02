@@ -10,7 +10,7 @@
 
 <div class="search-container">
   <input type="text" id="searchBox" placeholder="Search posts..." onkeyup="searchPosts()">
-  <button onclick="searchPosts()">Search</button>
+  
 </div>
 
 
@@ -211,18 +211,15 @@ function updatePost(postId, title, body) {
 
  // Seach function
  function searchPosts() {
-    const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-    fetch('/posts')
-        .then(response => response.json())
-        .then(posts => {
-            const filteredPosts = posts.filter(post => 
-                post.title.toLowerCase().includes(searchTerm) ||
-                post.content.toLowerCase().includes(searchTerm)
-            );
-            renderPosts(filteredPosts);
+    const searchTerm = document.getElementById('searchBox').value;
+    fetch(`/posts?searchTerm=${encodeURIComponent(searchTerm)}`)
+       .then(response => response.json())
+       .then(posts => {
+            renderPosts(posts);
         })
-        .catch(error => console.error('Error:', error));
+       .catch(error => console.error('Error:', error));
 }
+
 
 function renderPosts(posts = null) {
     if (posts) {
@@ -243,12 +240,14 @@ function displayPosts(posts) {
         postElement.innerHTML = `
             <h2>${post.title}</h2>
             <p>${post.content}</p>
+            <p>By: ${post.username}</p> <!-- Display username -->
             <button onclick="editPost(${post.id})">Edit</button>
             <button onclick="deletePost(${post.id})">Delete</button>
         `;
         postsContainer.appendChild(postElement);
     });
 }
+
 
 document.addEventListener('DOMContentLoaded', function() {
     renderPosts(); // Call renderPosts initially when the document is ready

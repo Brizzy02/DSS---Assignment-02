@@ -94,17 +94,41 @@ app.post('/posts', async (req, res) => {
 });
 
 app.get('/posts', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM posts';
-        const result = await pool.query(query);
-        const posts = result.rows;
+    const searchTerm = req.query.searchTerm; // Assuming searchTerm is passed as a query parameter
+    console.log('Search term:', searchTerm); // Log the search term
 
-        res.json(posts);
+    try {
+        let query = `
+            SELECT posts.*, users.username
+            FROM posts
+            INNER JOIN users ON posts.user_id = users.id
+        `;
+
+        if (searchTerm) {
+            console.log('Applying search filter'); // Log that a search filter is being applied
+            query += `
+                WHERE posts.title ILIKE $1
+                OR posts.content ILIKE $1
+                OR users.username ILIKE $1
+            `;
+            const result = await pool.query(query, [`%${searchTerm}%`]);
+            console.log('Search results:', result.rows); // Log the search results
+            const posts = result.rows;
+            res.json(posts);
+        } else {
+            console.log('Fetching all posts'); // Log that all posts are being fetched
+            const result = await pool.query(query);
+            console.log('All posts:', result.rows); // Log all posts
+            const posts = result.rows;
+            res.json(posts);
+        }
     } catch (error) {
-        console.error('Error retrieving posts:', error);
+        console.error('Error retrieving posts:', error); // Log the error
         res.status(500).json({ error: 'An error occurred while retrieving the posts.' });
     }
 });
+
+
 app.delete('/posts/:id', async (req, res) => {
     const postId = req.params.id;
     const userId = req.session.userId; // Get the user ID from the session
