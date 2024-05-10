@@ -5,39 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../Styles/index.css">
     <title>Simple Blog - Login</title>
-
 </head>
 <body>
     <header>
         <h1 class="heading">Simple Blog</h1>
         <h3 class="title">Login & Registration Form</h3>
     </header>
-    <div class="container">
-        <div class="btn">
-            <button class="login active">Login</button>
-            <a href="/signup" class="signup">Signup</a> <!-- Changed to an <a> tag -->
-        </div>
-        <div class="form-section">
-            <div class="login-box">
-                <form action="/login" method="post">
-                    <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
-                    <input type="password" class="password ele" placeholder="password" name="password" required>
-                    <button type="submit" class="clkbtn">Login</button>
-                    <img src="/captcha" alt="CAPTCHA" id="captcha-image">
-                    <input type="text" name="captcha" placeholder="Enter CAPTCHA">
-                    <input type="hidden" name="sessionId" value="<%= sessionId %>">
-                    <button type="submit">Login</button>
-                </form>
+    <div class="main-container">
+        <div class="container">
+            <div class="btn-group"> <!-- Group buttons together -->
+                <a href="/index" class="signup">Login</a>
+                <a href="/signup" class="signup">Signup</a>
             </div>
-            
-            <div class="signup-box">
+            <div class="form-section">
+                <div class="login-box">
+                    <form action="/login" method="post">
+                        <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
+                        <input type="password" class="password ele" placeholder="password" name="password" required>
+                       <!--<button type="submit" class="clkbtn">Login</button>-->
+                        <img src="/captcha" alt="CAPTCHA" id="captcha-image">
+                        <input type="text" name="captcha" placeholder="Enter CAPTCHA">
+                        <input type="hidden" name="sessionId" value="<%= sessionId %>">
+                        <button type="submit" class="clkbtn">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>   
+          <!--  <div class="signup-box">
                 <input type="text" class="name ele" placeholder="Enter your name">
                 <input type="email" class="email ele" placeholder="youremail@email.com">
                 <input type="password" class="password ele" placeholder="password">
                 <input type="password" class="password ele" placeholder="Confirm password">
                 <button class="clkbtn">Signup</button>
-            </div>
-        </div>
+            </div>-->
+        
     </div>
     <script>
         document.querySelectorAll('.btn button, .btn a').forEach(item => {
@@ -51,13 +52,13 @@
             });
         });
 
-        document.querySelectorAll('.clkbtn').forEach(btn => {
-            btn.addEventListener('click', event => {
-                let formType = event.target.parentElement.classList.contains('login-box') ? 'login' : 'signup';
-                console.log(`${formType.charAt(0).toUpperCase() + formType.slice(1)} form submitted.`);
+        //document.querySelectorAll('.clkbtn').forEach(btn => {
+        //    btn.addEventListener('click', event => {
+        //        let formType = event.target.parentElement.classList.contains('login-box') ? 'login' : 'signup';
+        //        console.log(`${formType.charAt(0).toUpperCase() + formType.slice(1)} form submitted.`);
                 // Here you can add code to handle form submission, e.g., send data to a server.
-            });
-        });
+        //    });
+        //});
     </script>
 </body>
 </html>

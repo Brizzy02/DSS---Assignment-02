@@ -1,80 +1,58 @@
-
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f4f4f4;
     color: #333;
-    padding: 20px;
     margin: 0;
+    padding: 20px;
     display: flex;
+    flex-direction: column; /* Stack vertically */
+    justify-content: flex-start; /* Align content to the top */
+    align-items: center; /* Center content horizontally */
+    min-height: 100vh; /* Full viewport height */
+}
+
+header {
+    width: 100%;
+    max-width: 360px;
+    text-align: center; /* Center the header text */
+}
+
+.main-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Align vertically center */
+    flex-grow: 1; /* Take up remaining space */
 }
 
 .container {
     background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 30px;
+    border-radius: 10px;
+    /*box-shadow: 0 2px 5px rgba(0,0,0,0.1);*/
     width: 100%;
-    max-width: 400px; /* Limit max width for better visual structure */
-}
-
-h1, h3 {
-    text-align: center; /* Center align titles */
-    margin-bottom: 20px;
+    max-width: 360px; /* Control the width of the container */
 }
 
 .btn button, .btn a, .clkbtn {
-    width: 100%; /* Full width buttons */
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 10px 20px;
     font-size: 16px;
     border: none;
+    border-radius: 5px;
     color: white;
     background-color: #007bff;
-    border-radius: 5px;
-    cursor: pointer;
-    display: block; /* Ensure buttons take full width */
-}
-
-.btn a {
-    text-align: center;
+    text-decoration: none;
     display: block;
-    margin-top: 20px; /* Spacing between login and signup */
+    width: 100%;
+    text-align: center;
+    
 }
 
-input[type="email"], input[type="password"], input[type="text"] {
+input[type="email"], input[type="password"], input[type="text"], textarea {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 15px; /* Increase margin for better spacing */
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    height: 100px; /* Fixed height for textarea */
+    padding: 10px;
     margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
-
-input[type="submit"]:hover, .clkbtn:hover {
-    background-color: #0356b3; /* Darker shade for hover */
-}
-
-/* Focus styles for better accessibility */
-input:focus, button:focus, a:focus {
-    outline: 2px solid #0056b3;
-    outline-offset: 2px;
-}
-
-/* Style the CAPTCHA */
-#captcha-image {
-    margin-top: 10px;
-    width: 100%; /* Responsive image width */
-    height: auto;
-}
-
