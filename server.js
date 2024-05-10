@@ -309,8 +309,8 @@ app.post('/signup', async (req, res) => {
         console.log('Password hashed successfully'); // Log successful password hashing
 
         // Insert the user into the database with the hashed password and unhashed password
-        const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)';
-        const values = [username, email, password]; // Include the unhashed password
+        const query = 'INSERT INTO users (username, email, password, unhashed_password) VALUES ($1, $2, $3, $4)';
+        const values = [username, email, hashedPassword, password]; // Include the unhashed password
 
         await pool.query(query, values);
         console.log('User inserted into database'); // Log successful user insertion
