@@ -22,7 +22,6 @@
                     <form action="/login" method="post">
                         <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
                         <input type="password" class="password ele" placeholder="password" name="password" required>
-                       <!--<button type="submit" class="clkbtn">Login</button>-->
                         <img src="/captcha" alt="CAPTCHA" id="captcha-image">
                         <input type="text" name="captcha" placeholder="Enter CAPTCHA">
                         <input type="hidden" name="sessionId" value="<%= sessionId %>">
@@ -30,15 +29,7 @@
                     </form>
                 </div>
             </div>
-        </div>   
-          <!--  <div class="signup-box">
-                <input type="text" class="name ele" placeholder="Enter your name">
-                <input type="email" class="email ele" placeholder="youremail@email.com">
-                <input type="password" class="password ele" placeholder="password">
-                <input type="password" class="password ele" placeholder="Confirm password">
-                <button class="clkbtn">Signup</button>
-            </div>-->
-        
+        </div>     
     </div>
     <script>
         document.querySelectorAll('.btn button, .btn a').forEach(item => {
