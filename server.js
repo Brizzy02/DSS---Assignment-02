@@ -297,27 +297,27 @@ app.post('/signout', (req, res, next) => {
 
 
 app.post('/signup', async (req, res) => {
-    console.log('Signup request received'); // Log when a signup request is received
-    console.log('Request body:', req.body); // Debug statement to log the request body
+    console.log('Signup request received');
+    console.log('Request body:', req.body);
 
     const { username, email, password } = req.body;
-    console.log('Received data:', { username, email, password }); // Log received data
 
     try {
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, saltRounds);
-        console.log('Password hashed successfully'); // Log successful password hashing
+        console.log('Password hashed successfully');
 
-        // Insert the user into the database with the hashed password and unhashed password
-        const query = 'INSERT INTO users (username, email, password, unhashed_password) VALUES ($1, $2, $3, $4)';
-        const values = [username, email, hashedPassword, password]; // Include the unhashed password
+        // Insert the user into the database with the hashed password
+        const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id';
+        const values = [username, email, hashedPassword];
 
-        await pool.query(query, values);
-        console.log('User inserted into database'); // Log successful user insertion
+        const result = await pool.query(query, values);
+        const newUser = result.rows[0];
+        console.log('User inserted into database:', newUser);
 
-        res.json({ message: 'User created successfully' });
+        res.json({ message: 'User created successfully', userId: newUser.id });
     } catch (error) {
-        console.error('Error during signup:', error); // Log any errors
+        console.error('Error during signup:', error);
         res.status(500).json({ error: 'An error occurred during signup.' });
     }
 });
