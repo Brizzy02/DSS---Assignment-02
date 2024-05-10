@@ -8,6 +8,12 @@
 <body>
 <h1>Simple Blog</h1>
 
+<div class="search-container">
+  <input type="text" id="searchBox" placeholder="Search posts..." onkeyup="searchPosts()">
+  <button onclick="searchPosts()">Search</button>
+</div>
+
+
 <div id="posts"></div>
 
 <button onclick="showNewPostForm()">New Post</button>
@@ -202,6 +208,74 @@ function updatePost(postId, title, body) {
 });
 
  renderPosts();
+
+ // Seach function
+ function searchPosts() {
+    const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+    fetch('/posts')
+        .then(response => response.json())
+        .then(posts => {
+            const filteredPosts = posts.filter(post => 
+                post.title.toLowerCase().includes(searchTerm) ||
+                post.content.toLowerCase().includes(searchTerm)
+            );
+            renderPosts(filteredPosts);
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function renderPosts(posts = null) {
+    if (posts) {
+        displayPosts(posts);
+    } else {
+        fetch('/posts')
+            .then(response => response.json())
+            .then(posts => displayPosts(posts))
+            .catch(error => console.error('Error:', error));
+    }
+}
+
+function displayPosts(posts) {
+    const postsContainer = document.getElementById("posts");
+    postsContainer.innerHTML = ""; // Clear previous posts
+    posts.forEach(post => {
+        const postElement = document.createElement("div");
+        postElement.innerHTML = `
+            <h2>${post.title}</h2>
+            <p>${post.content}</p>
+            <button onclick="editPost(${post.id})">Edit</button>
+            <button onclick="deletePost(${post.id})">Delete</button>
+        `;
+        postsContainer.appendChild(postElement);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderPosts(); // Call renderPosts initially when the document is ready
+});
+
+document.getElementById("postForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    const title = document.getElementById("postTitle").value;
+    const body = document.getElementById("postBody").value;
+    if (title.trim() && body.trim()) {
+        createPost(title, body);
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postBody").value = "";
+        document.getElementById("newPostForm").style.display = "none";
+    } else {
+        alert("Please enter both title and body.");
+    }
+});
+
+document.getElementById('editForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const postId = document.getElementById('editPostId').value;
+    const title = document.getElementById('editPostTitle').value;
+    const body = document.getElementById('editPostBody').value;
+    updatePost(postId, title, body);
+});
+
 </script>
 
 </body>
