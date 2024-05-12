@@ -1,4 +1,5 @@
 
+const speakeasy = require('speakeasy');
 
 const express = require("express");
 const app = express();
@@ -237,20 +238,13 @@ app.put('/posts/:id', async (req, res) => {
     }
 });
 
-
 app.post('/login', (req, res, next) => {
     console.log("Login attempt received");
     console.log("Email:", req.body.email);
-    console.log("Password:", req.body.password); // Be cautious with logging passwords
-    console.log("Captcha:", req.body.captcha);
+    console.log("Password:", req.body.password);
+    console.log("OTP:", req.body.otp);
 
-    const { email, password, captcha } = req.body;
-
-    // Check if the captcha entered by the user matches the one stored in the session
-    if (captcha !== req.session.captcha) {
-        console.log("Captcha verification failed");
-        return res.status(401).send('Captcha verification failed');
-    }
+    const { email, password, otp } = req.body;
 
     // Query the database for the user
     pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
@@ -276,6 +270,26 @@ app.post('/login', (req, res, next) => {
                 return res.status(401).send('Password does not match');
             }
 
+            // Generate the OTP on the server for comparison
+            const serverOtp = speakeasy.totp({
+                secret: user.secret,
+                encoding: 'base32'
+            });
+
+            console.log("Server-generated OTP:", serverOtp);
+
+            // Verify the OTP
+            const verified = speakeasy.totp.verify({
+                secret: user.secret,
+                encoding: 'base32',
+                token: otp,
+            });
+
+            if (!verified) {
+                console.log("OTP verification failed");
+                return res.status(401).send('OTP verification failed');
+            }
+
             console.log("Login successful");
             // Store the userId in the session
             req.session.userId = user.id;
@@ -287,6 +301,7 @@ app.post('/login', (req, res, next) => {
         });
     });
 });
+
 
 
 
@@ -331,20 +346,29 @@ app.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         console.log('Password hashed successfully');
 
-        // Insert the user into the database with the hashed password
-        const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id';
-        const values = [username, email, hashedPassword];
+        // Generate a shorter secret key for 2FA
+        const secret = speakeasy.generateSecret({length: 8});
+
+        // Insert the user into the database with the hashed password and secret key
+        const query = 'INSERT INTO users (username, email, password, secret) VALUES ($1, $2, $3, $4) RETURNING id';
+        const values = [username, email, hashedPassword, secret.base32];
 
         const result = await pool.query(query, values);
         const newUser = result.rows[0];
         console.log('User inserted into database:', newUser);
 
-        res.json({ message: 'User created successfully', userId: newUser.id });
+        // Send the secret key to the user's email or display it on the screen
+        // This is a placeholder for the actual implementation
+        console.log('Secret key:', secret.base32);
+
+        res.json({ message: 'User created successfully', userId: newUser.id, secretKey: secret.base32 });
     } catch (error) {
         console.error('Error during signup:', error);
         res.status(500).json({ error: 'An error occurred during signup.' });
     }
 });
+
+
 
 
 
