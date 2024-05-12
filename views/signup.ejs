@@ -51,42 +51,56 @@
         <button type="submit">Sign Up</button>
     </form>-->
 
-<script>
-    document.getElementById('registrationForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the form from submitting via the browser.
-        const formData = new FormData(event.target);
-        const data = Object.fromEntries(formData.entries());
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting via the browser.
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
     
-        console.log('Form data:', data); // Log form data
+            console.log('Form data submitted:', data); // Log the form data submitted
     
-        // Convert form data to URL-encoded string
-        const urlEncodedData = new URLSearchParams(data).toString();
+            // Convert form data to URL-encoded string
+            const urlEncodedData = new URLSearchParams(data).toString();
     
-        // Send the data to the server
-        fetch('/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: urlEncodedData,
-        })
-        .then(response => {
-            console.log('Fetch response:', response); // Log the fetch response
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
-            // Optionally, redirect the user to the login page or show a success message
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            // Optionally, show an error message to the user
+            // Send the data to the server
+            fetch('/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: urlEncodedData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    console.log('Registration successful:', data);
+                    displayMessage('Registration successful!', 'success');
+                    document.getElementById('registrationForm').reset(); // Reset form fields
+                } else {
+                    console.log('Registration failed:', data.error);
+                    throw new Error('Username or Email already exists');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                displayMessage('Registration failed: Username or Email already exists', 'error');
+            });
         });
-    });
-</script>
+    
+        function displayMessage(message, type) {
+            const messageElement = document.getElementById('message');
+            if (!messageElement) {
+                const newMessage = document.createElement('div');
+                newMessage.id = 'message';
+                document.querySelector('.container').appendChild(newMessage);
+            }
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = type; // Apply CSS styles based on 'success' or 'error'
+        }
+    </script>
+    
+    
 
         
         

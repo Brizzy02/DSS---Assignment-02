@@ -34,12 +34,21 @@ app.use(session({
     }
 }));
 
+// Set Content Security Policy
+//app.use((req, res, next) => {
+//   res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' https://trusted.com; script-src 'self'; style-src 'self';");
+//    next();
+//});
+
 app.use(function(req, res, next) {
     // Make sessionId available to all views
     res.locals.sessionId = req.sessionID;
     next();
 });
 
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Add this line to parse JSON request bodies
 
 app.get("/signup", (req, res) => {
     console.log("Rendering signup page");
@@ -62,13 +71,6 @@ app.get("/editpost", (req, res) => {
     res.render("editpost");
 });
 
-
-
-
-
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // Add this line to parse JSON request bodies
 
 app.post('/posts', async (req, res) => {
     const { title, body } = req.body;
@@ -327,22 +329,27 @@ app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
 
     try {
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        console.log('Password hashed successfully');
+        // Check if username or email already exists in the database
+        console.log('Checking if username or email already exists');
+        const userCheck = 'SELECT id FROM users WHERE username = $1 OR email = $2';
+        const userResult = await pool.query(userCheck, [username, email]);
 
-        // Insert the user into the database with the hashed password
+        if (userResult.rows.length > 0) {
+            console.log('Username or Email already exists');
+            return res.status(400).json({ error: 'Username or Email already exists' });
+        }
+
+        // If checks pass, proceed to create new user
+        console.log('Creating user:', username, email);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
         const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id';
         const values = [username, email, hashedPassword];
-
         const result = await pool.query(query, values);
-        const newUser = result.rows[0];
-        console.log('User inserted into database:', newUser);
-
-        res.json({ message: 'User created successfully', userId: newUser.id });
+        console.log('User created successfully:', result.rows[0].id);
+        res.json({ message: 'User created successfully', userId: result.rows[0].id });
     } catch (error) {
-        console.error('Error during signup:', error);
-        res.status(500).json({ error: 'An error occurred during signup.' });
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'An unexpected error occurred during signup.' });
     }
 });
 
