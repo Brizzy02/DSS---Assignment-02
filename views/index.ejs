@@ -13,7 +13,7 @@
     </header>
     <div class="main-container">
         <div class="container">
-            <div class="btn-group"> <!-- Group buttons together -->
+            <div class="btn-group">
                 <a href="/index" class="signup">Login</a>
                 <a href="/signup" class="signup">Signup</a>
             </div>
@@ -22,6 +22,7 @@
                     <form action="/login" method="post">
                         <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
                         <input type="password" class="password ele" placeholder="password" name="password" required>
+                        <input type="text" name="otp" placeholder="Enter OTP" required>
                         <img src="/captcha" alt="CAPTCHA" id="captcha-image">
                         <input type="text" name="captcha" placeholder="Enter CAPTCHA">
                         <input type="hidden" name="sessionId" value="<%= sessionId %>">
@@ -32,24 +33,16 @@
         </div>     
     </div>
     <script>
-        document.querySelectorAll('.btn button, .btn a').forEach(item => {
+        document.querySelectorAll('.btn button,.btn a').forEach(item => {
             item.addEventListener('click', event => {
-                let btnType = event.target.classList.contains('login') ? 'login' : 'signup';
-                document.querySelectorAll('.btn button, .btn a').forEach(btn => btn.classList.remove('active'));
+                let btnType = event.target.classList.contains('login')? 'login' : 'signup';
+                document.querySelectorAll('.btn button,.btn a').forEach(btn => btn.classList.remove('active'));
                 event.target.classList.add('active');
                 document.querySelectorAll('.form-section > div').forEach(form => {
-                    form.style.display = form.classList.contains(btnType + '-box') ? 'block' : 'none';
+                    form.style.display = form.classList.contains(btnType + '-box')? 'block' : 'none';
                 });
             });
         });
-
-        //document.querySelectorAll('.clkbtn').forEach(btn => {
-        //    btn.addEventListener('click', event => {
-        //        let formType = event.target.parentElement.classList.contains('login-box') ? 'login' : 'signup';
-        //        console.log(`${formType.charAt(0).toUpperCase() + formType.slice(1)} form submitted.`);
-                // Here you can add code to handle form submission, e.g., send data to a server.
-        //    });
-        //});
     </script>
 </body>
 </html>

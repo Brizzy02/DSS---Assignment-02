@@ -13,82 +13,58 @@
     </header>
     <div class="main-container">
         <div class="container">
-            <div class="btn-group"> <!-- Group buttons together -->
+            <div class="btn-group">
                 <a href="/index" class="signup">Login</a>
                 <a href="/signup" class="signup">Signup</a>
             </div>
             <div class="form-section">
                 <div class="login-box">
-                    <!--<form action="/login" method="post">
-                        <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
-                        <input type="password" class="password ele" placeholder="password" name="password" required>
-                        <img src="/captcha" alt="CAPTCHA" id="captcha-image">
-                        <input type="text" name="captcha" placeholder="Enter CAPTCHA">
-                        <input type="hidden" name="sessionId" value="<%= sessionId %>">
-                        <button type="submit" class="clkbtn">Login</button>
-                    </form>-->
                     <form id="registrationForm">
                         <input type="text" id="username" placeholder="username" name="username" required>
                         <input type="email" id="email ele" placeholder="youremail@email.com" name="email" required>
                         <input type="password" id="password ele" placeholder="password" name="password" required>
                         <button type="submit" id="clkbtn">Sign Up</button>
                     </form>
+                    <!-- Placeholder for displaying the secret key -->
+                    <div id="secretKeyDisplay" style="display: none;">
+                        <p>Your secret key is: <span id="secretKey"></span></p>
+                        <p>Please add this key to your Google Authenticator app.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>   
 
-    <!--<form id="registrationForm">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <button type="submit">Sign Up</button>
-    </form>-->
-
 <script>
-    document.getElementById('registrationForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the form from submitting via the browser.
-        const formData = new FormData(event.target);
-        const data = Object.fromEntries(formData.entries());
-    
-        console.log('Form data:', data); // Log form data
-    
-        // Convert form data to URL-encoded string
-        const urlEncodedData = new URLSearchParams(data).toString();
-    
-        // Send the data to the server
-        fetch('/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: urlEncodedData,
-        })
-        .then(response => {
-            console.log('Fetch response:', response); // Log the fetch response
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
-            // Optionally, redirect the user to the login page or show a success message
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            // Optionally, show an error message to the user
-        });
+ document.getElementById('registrationForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+
+    console.log('Form data:', data);
+
+    const urlEncodedData = new URLSearchParams(data).toString();
+
+    fetch('/signup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: urlEncodedData,
+    })
+   .then(response => response.json())
+   .then(data => {
+        console.log('Success:', data);
+        // Display the secret key to the user
+        document.getElementById('secretKey').textContent = data.secretKey;
+        document.getElementById('secretKeyDisplay').style.display = 'block';
+    })
+   .catch((error) => {
+        console.error('Error:', error);
     });
+});
+
 </script>
 
-        
-        
 </body>
 </html>

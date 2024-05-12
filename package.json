@@ -19,6 +19,8 @@
     "express-session": "^1.18.0",
     "kill-port": "^2.0.1",
     "pg": "^8.11.5",
+    "qrcode": "^1.5.3",
+    "speakeasy": "^2.0.0",
     "svg-captcha": "^1.4.0"
   },
   "devDependencies": {
