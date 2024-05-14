@@ -440,6 +440,8 @@ app.post('/signup', async (req, res) => {
         // This is a placeholder for the actual implementation
         console.log('Secret key:', secret.base32);
 
+        
+
         res.json({ message: 'User created successfully', userId: newUser.id, secretKey: secret.base32 });
     } catch (error) {
         console.error('Signup error:', error);

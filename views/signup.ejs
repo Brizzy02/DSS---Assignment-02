@@ -71,6 +71,8 @@ document.getElementById('registrationForm').addEventListener('submit', function(
             console.log('Registration successful:', data);
             displayMessage('Registration successful!', 'success');
             document.getElementById('registrationForm').reset(); // Reset form fields
+            document.getElementById('secretKey').textContent = data.secretKey;
+            document.getElementById('secretKeyDisplay').style.display = 'block';
         } else {
             console.log('Registration failed:', data.error);
             throw new Error('Username or Email already exists');
