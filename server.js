@@ -1,27 +1,22 @@
-
-
 const express = require("express");
 const app = express();
 const port = 4000;
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
 const bcrypt = require('bcrypt');
+const csurf = require('csurf');
 const saltRounds = 10;
+const { Pool } = require('pg');
 require('dotenv').config();
 
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+});
+// Middleware configurations
 app.set('view engine', 'ejs');
-
-const session = require('express-session');
-// Configure the rate limiter
-
-
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again after an hour'
-   });
-
-// Apply the rate limiter to all routes
-app.use(limiter);
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Add this line to parse JSON request bodies
 
 app.use(session({
     secret: 'your-secret-key',
@@ -34,11 +29,63 @@ app.use(session({
     }
 }));
 
-// Set Content Security Policy
-//app.use((req, res, next) => {
-//   res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' https://trusted.com; script-src 'self'; style-src 'self';");
-//    next();
-//});
+const csrfProtection = csurf({ cookie: false });
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after an hour'
+   });
+
+// Apply the rate limiter to all routes
+app.use(limiter);
+
+
+// Apply CSRF protection to all POST routes
+app.get("/", csrfProtection, (req, res) => {
+    console.log("Rendering index page with CSRF Token:", req.csrfToken());
+    // Pass the CSRF token to the template
+    res.render("index", {
+        sessionId: req.sessionID,
+        csrfToken: req.csrfToken()  // Ensure this is added
+    });
+});
+
+app.get("/signup", csrfProtection, (req, res) => {
+    console.log("Rendering signup page with CSRF Token:", req.csrfToken());
+    res.render("signup", {
+        csrfToken: req.csrfToken(),  // Pass CSRF token to the view
+        sessionId: req.sessionID    // Only pass this if it's actually used in the view
+    });
+});
+
+app.get("/index", csrfProtection, (req, res) => {
+    console.log("CSRF Token:", req.csrfToken());
+    console.log("Rendering index page");
+    res.render("index", {
+        csrfToken: req.csrfToken(),
+        sessionId: req.sessionID
+        });
+});
+
+app.get("/login", csrfProtection, (req, res) => {
+    console.log("CSRF Token:", req.csrfToken());
+    //console.log("Rendering index page");
+    res.render("login", {
+         csrfToken: req.csrfToken(),
+         sessionId: req.sessionID
+         });
+});
+
+app.use((err, req, res, next) => {
+    if (err.code === "EBADCSRFTOKEN") {
+        // handle CSRF token errors here
+        res.status(403);
+        res.send("CSRF token mismatch, please refresh the page or try again.");
+    } else {
+        next(err);
+    }
+});
 
 app.use(function(req, res, next) {
     // Make sessionId available to all views
@@ -46,33 +93,12 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // Add this line to parse JSON request bodies
-
-app.get("/signup", (req, res) => {
-    console.log("Rendering signup page");
-    res.render("signup"); // Make sure this matches the name of your EJS file
-});
-
-
-app.get("/", (req, res) => {
-    console.log("Rendering index page");
-    res.render("index", {sessionId: req.sessionID});
-});
-
-app.get("/index", (req, res) => {
-    console.log("Rendering index page");
-    res.render("index");
-});
-
 app.get("/editpost", (req, res) => {
     console.log("Rendering editpost page");
     res.render("editpost");
 });
 
-
-app.post('/posts', async (req, res) => {
+app.post('/posts', csrfProtection,async (req, res) => {
     const { title, body } = req.body;
     const userId = req.session.userId; // Get the user ID from the session
 
@@ -207,11 +233,6 @@ app.get('/user', (req, res) => {
     }
 });
 
-
-
-
-
-
 app.put('/posts/:id', async (req, res) => {
     const postId = req.params.id;
     const { title, body } = req.body;
@@ -240,7 +261,7 @@ app.put('/posts/:id', async (req, res) => {
 });
 
 
-app.post('/login', (req, res, next) => {
+app.post('/login', csrfProtection,(req, res, next) => {
     console.log("Login attempt received");
     console.log("Email:", req.body.email);
     console.log("Password:", req.body.password); // Be cautious with logging passwords
@@ -290,9 +311,6 @@ app.post('/login', (req, res, next) => {
     });
 });
 
-
-
-
 const svgCaptcha = require('svg-captcha');
 
 app.get('/captcha', (req, res) => {
@@ -302,7 +320,6 @@ app.get('/captcha', (req, res) => {
     res.type('svg');
     res.status(200).send(captcha.data);
 });
-
 
 
 app.get('/home', (req, res) => {
@@ -354,8 +371,6 @@ app.post('/signup', async (req, res) => {
 });
 
 
-
-
 app.get('/signout', (req, res) => {
     res.render('signout');
 });
@@ -370,13 +385,6 @@ app.listen(port, () => {
 });
 
 console.log('Database URL:', process.env.DATABASE_URL);
-
-
-const { Pool } = require('pg');
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
-
 
 // Test query to check database connection
 pool.query('SELECT NOW()', (err, res) => {
