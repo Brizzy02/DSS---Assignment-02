@@ -64,6 +64,27 @@ app.get("/editpost", (req, res) => {
 });
 
 
+function sanitizeInput(input) {
+    // Remove or escape characters that are commonly used in SQL injection attacks
+    return input.replace(/[\0\x08\x09\x1a\n\r"'\\\x00-\x1f]/g, function (char) {
+        switch (char) {
+            case '\0':
+            case '\x08':
+            case '\x09':
+            case '\x1a':
+            case '\n':
+            case '\r':
+            case "'":
+            case '"':
+            case '\\':
+            case '\x00':
+            case '\x1f':
+                return '';
+            default:
+                return '\\' + char;
+        }
+    });
+}
 
 
 
@@ -245,9 +266,12 @@ app.post('/login', (req, res, next) => {
     console.log("OTP:", req.body.otp);
 
     const { email, password, otp } = req.body;
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPassword = sanitizeInput(password);
+    const sanitizedOtp = sanitizeInput(otp);
 
     // Query the database for the user
-    pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
+    pool.query('SELECT * FROM users WHERE email = $1', [sanitizedEmail], (error, results) => {
         if (error) {
             console.error("Database query error:", error);
             return res.status(500).send('Database query error');
@@ -340,10 +364,14 @@ app.post('/signup', async (req, res) => {
     console.log('Request body:', req.body);
 
     const { username, email, password } = req.body;
+    const sanitizedUsername = sanitizeInput(username);
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPassword = sanitizeInput(password);
 
     try {
         // Hash the password
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(sanitizedPassword, saltRounds);
+        console.log('Password hashed successfully');
         console.log('Password hashed successfully');
 
         // Generate a shorter secret key for 2FA
@@ -351,7 +379,7 @@ app.post('/signup', async (req, res) => {
 
         // Insert the user into the database with the hashed password and secret key
         const query = 'INSERT INTO users (username, email, password, secret) VALUES ($1, $2, $3, $4) RETURNING id';
-        const values = [username, email, hashedPassword, secret.base32];
+        const values = [sanitizedUsername, sanitizedEmail, hashedPassword, secret.base32];
 
         const result = await pool.query(query, values);
         const newUser = result.rows[0];
