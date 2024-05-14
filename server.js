@@ -272,39 +272,38 @@ app.post('/login', csrfProtection,(req, res, next) => {
     // Check if the captcha entered by the user matches the one stored in the session
     if (captcha !== req.session.captcha) {
         console.log("Captcha verification failed");
-        return res.status(401).send('Captcha verification failed');
+        return res.render('index', { error: 'Captcha verification failed', csrfToken: req.csrfToken() });
     }
 
-    // Query the database for the user
     pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
         if (error) {
             console.error("Database query error:", error);
-            return res.status(500).send('Database query error');
+            return res.render('index', { error: 'Database query error', csrfToken: req.csrfToken() });
         }
 
         if (results.rows.length === 0) {
             console.log("No user found with the provided email");
-            return res.status(401).send('No user found with the provided email');
+            return res.render('index', { error: 'No user found with the provided email', csrfToken: req.csrfToken() });
         }
 
         const user = results.rows[0];
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) {
                 console.error("Error comparing passwords:", err);
-                return res.status(500).send('Error comparing passwords');
+                return res.render('index', { error: 'Error comparing passwords', csrfToken: req.csrfToken() });
             }
 
             if (!isMatch) {
                 console.log("Password does not match");
-                return res.status(401).send('Password does not match');
+                return res.render('index', { error: 'Invalid email or password', csrfToken: req.csrfToken() });
             }
 
-            console.log("Login successful");
-            // Store the userId in the session
+            // Success
             req.session.userId = user.id;
-            // Save the session before redirecting
-            req.session.save(function (err) {
-                if (err) return next(err);
+            req.session.save(err => {
+                if (err) {
+                    return next(err);
+                }
                 res.redirect('/home');
             });
         });

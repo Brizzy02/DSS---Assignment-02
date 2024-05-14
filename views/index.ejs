@@ -28,6 +28,11 @@
                         <input type="hidden" name="sessionId" value="<%= sessionId %>">
                         <button type="submit" class="clkbtn">Login</button>
                     </form>
+                    <% if (typeof error !== 'undefined' && error) { %>
+                        <div class="error-message" style="color: red;">
+                            <%= error %>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </div>     
