@@ -56,3 +56,11 @@ input[type="email"], input[type="password"], input[type="text"], textarea {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}

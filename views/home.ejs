@@ -240,7 +240,8 @@ function displayPosts(posts) {
         postElement.innerHTML = `
             <h2>${post.title}</h2>
             <p>${post.content}</p>
-            <p>By: ${post.username}</p> <!-- Display username -->
+            <p>By: ${post.username}</p>
+            <p>${new Date(post.created_at).toLocaleDateString()} ${new Date(post.created_at).toLocaleTimeString()}</p> <!-- Display timestamp -->
             <button onclick="editPost(${post.id})">Edit</button>
             <button onclick="deletePost(${post.id})">Delete</button>
         `;

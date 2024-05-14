@@ -5,24 +5,21 @@ const express = require("express");
 const app = express();
 const port = 4000;
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
 const bcrypt = require('bcrypt');
+const csurf = require('csurf');
 const saltRounds = 10;
+const { Pool } = require('pg');
 require('dotenv').config();
 
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+});
+// Middleware configurations
 app.set('view engine', 'ejs');
-
-const session = require('express-session');
-// Configure the rate limiter
-
-
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again after an hour'
-   });
-
-// Apply the rate limiter to all routes
-app.use(limiter);
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Add this line to parse JSON request bodies
 
 app.use(session({
     secret: 'your-secret-key',
@@ -35,27 +32,68 @@ app.use(session({
     }
 }));
 
+const csrfProtection = csurf({ cookie: false });
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after an hour'
+   });
+
+// Apply the rate limiter to all routes
+app.use(limiter);
+
+
+// Apply CSRF protection to all POST routes
+app.get("/", csrfProtection, (req, res) => {
+    console.log("Rendering index page with CSRF Token:", req.csrfToken());
+    // Pass the CSRF token to the template
+    res.render("index", {
+        sessionId: req.sessionID,
+        csrfToken: req.csrfToken()  // Ensure this is added
+    });
+});
+
+app.get("/signup", csrfProtection, (req, res) => {
+    console.log("Rendering signup page with CSRF Token:", req.csrfToken());
+    res.render("signup", {
+        csrfToken: req.csrfToken(),  // Pass CSRF token to the view
+        sessionId: req.sessionID    // Only pass this if it's actually used in the view
+    });
+});
+
+app.get("/index", csrfProtection, (req, res) => {
+    console.log("CSRF Token:", req.csrfToken());
+    console.log("Rendering index page");
+    res.render("index", {
+        csrfToken: req.csrfToken(),
+        sessionId: req.sessionID
+        });
+});
+
+app.get("/login", csrfProtection, (req, res) => {
+    console.log("CSRF Token:", req.csrfToken());
+    //console.log("Rendering index page");
+    res.render("login", {
+         csrfToken: req.csrfToken(),
+         sessionId: req.sessionID
+         });
+});
+
+app.use((err, req, res, next) => {
+    if (err.code === "EBADCSRFTOKEN") {
+        // Handle CSRF token errors
+        res.status(403);
+        res.send("CSRF token mismatch, please refresh the page or try again.");
+    } else {
+        next(err);
+    }
+});
+
 app.use(function(req, res, next) {
     // Make sessionId available to all views
     res.locals.sessionId = req.sessionID;
     next();
-});
-
-
-app.get("/signup", (req, res) => {
-    console.log("Rendering signup page");
-    res.render("signup"); // Make sure this matches the name of your EJS file
-});
-
-
-app.get("/", (req, res) => {
-    console.log("Rendering index page");
-    res.render("index", {sessionId: req.sessionID});
-});
-
-app.get("/index", (req, res) => {
-    console.log("Rendering index page");
-    res.render("index");
 });
 
 app.get("/editpost", (req, res) => {
@@ -227,11 +265,6 @@ app.get('/user', (req, res) => {
     }
 });
 
-
-
-
-
-
 app.put('/posts/:id', async (req, res) => {
     const postId = req.params.id;
     const { title, body } = req.body;
@@ -327,9 +360,6 @@ app.post('/login', (req, res, next) => {
 });
 
 
-
-
-
 const svgCaptcha = require('svg-captcha');
 
 app.get('/captcha', (req, res) => {
@@ -339,7 +369,6 @@ app.get('/captcha', (req, res) => {
     res.type('svg');
     res.status(200).send(captcha.data);
 });
-
 
 
 app.get('/home', (req, res) => {
@@ -369,6 +398,21 @@ app.post('/signup', async (req, res) => {
     const sanitizedPassword = sanitizeInput(password);
 
     try {
+        // Check if username or email already exists in the database
+        console.log('Checking if username or email already exists');
+        const userCheck = 'SELECT id FROM users WHERE username = $1 OR email = $2';
+        const userResult = await pool.query(userCheck, [username, email]);
+
+        if (userResult.rows.length > 0) {
+            console.log('Username or Email already exists');
+            return res.status(400).json({ error: 'Username or Email already exists' });
+        }
+
+        // If checks pass, proceed to create new user
+        console.log('Creating user:', username, email);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id';
+        const values = [username, email, hashedPassword];
         // Hash the password
         const hashedPassword = await bcrypt.hash(sanitizedPassword, saltRounds);
         console.log('Password hashed successfully');
@@ -391,8 +435,8 @@ app.post('/signup', async (req, res) => {
 
         res.json({ message: 'User created successfully', userId: newUser.id, secretKey: secret.base32 });
     } catch (error) {
-        console.error('Error during signup:', error);
-        res.status(500).json({ error: 'An error occurred during signup.' });
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'An unexpected error occurred during signup.' });
     }
 });
 
@@ -415,13 +459,6 @@ app.listen(port, () => {
 });
 
 console.log('Database URL:', process.env.DATABASE_URL);
-
-
-const { Pool } = require('pg');
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
-
 
 // Test query to check database connection
 pool.query('SELECT NOW()', (err, res) => {

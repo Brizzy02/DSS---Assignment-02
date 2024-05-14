@@ -19,7 +19,16 @@
             </div>
             <div class="form-section">
                 <div class="login-box">
-                    <form id="registrationForm">
+                    <!--<form action="/login" method="post">
+                        <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
+                        <input type="password" class="password ele" placeholder="password" name="password" required>
+                        <img src="/captcha" alt="CAPTCHA" id="captcha-image">
+                        <input type="text" name="captcha" placeholder="Enter CAPTCHA">
+                        <input type="hidden" name="sessionId" value="<%= sessionId %>">
+                        <button type="submit" class="clkbtn">Login</button>
+                    </form>-->
+                    <form id="registrationForm" action="/signup" method="post">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <input type="text" id="username" placeholder="username" name="username" required>
                         <input type="email" id="email ele" placeholder="youremail@email.com" name="email" required>
                         <input type="password" id="password ele" placeholder="password" name="password" required>

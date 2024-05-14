@@ -20,6 +20,7 @@
             <div class="form-section">
                 <div class="login-box">
                     <form action="/login" method="post">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
                         <input type="password" class="password ele" placeholder="password" name="password" required>
                         <input type="text" name="otp" placeholder="Enter OTP" required>
@@ -43,6 +44,14 @@
                 });
             });
         });
+
+        //document.querySelectorAll('.clkbtn').forEach(btn => {
+        //    btn.addEventListener('click', event => {
+        //        let formType = event.target.parentElement.classList.contains('login-box') ? 'login' : 'signup';
+        //        console.log(`${formType.charAt(0).toUpperCase() + formType.slice(1)} form submitted.`);
+                // Here you can add code to handle form submission, e.g., send data to a server.
+        //    });
+        //});
     </script>
 </body>
 </html>
