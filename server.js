@@ -130,7 +130,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // Add this line to parse JSON request bodies
 
-app.post('/posts', async (req, res) => {
+app.post('/posts',csrfProtection, async (req, res) => {
     const { title, body } = req.body;
     const userId = req.session.userId; // Get the user ID from the session
 
@@ -292,7 +292,7 @@ app.put('/posts/:id', async (req, res) => {
     }
 });
 
-app.post('/login', (req, res, next) => {
+app.post('/login',csrfProtection, (req, res, next) => {
     console.log("Login attempt received");
     console.log("Email:", req.body.email);
     console.log("Password:", req.body.password);
@@ -410,9 +410,7 @@ app.post('/signup', async (req, res) => {
 
         // If checks pass, proceed to create new user
         console.log('Creating user:', username, email);
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id';
-        const values = [username, email, hashedPassword];
+        
         // Hash the password
         const hashedPassword = await bcrypt.hash(sanitizedPassword, saltRounds);
         console.log('Password hashed successfully');

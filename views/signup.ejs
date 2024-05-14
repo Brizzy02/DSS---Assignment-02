@@ -19,14 +19,6 @@
             </div>
             <div class="form-section">
                 <div class="login-box">
-                    <!--<form action="/login" method="post">
-                        <input type="email" class="email ele" placeholder="youremail@email.com" name="email" required>
-                        <input type="password" class="password ele" placeholder="password" name="password" required>
-                        <img src="/captcha" alt="CAPTCHA" id="captcha-image">
-                        <input type="text" name="captcha" placeholder="Enter CAPTCHA">
-                        <input type="hidden" name="sessionId" value="<%= sessionId %>">
-                        <button type="submit" class="clkbtn">Login</button>
-                    </form>-->
                     <form id="registrationForm" action="/signup" method="post">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <input type="text" id="username" placeholder="username" name="username" required>
@@ -45,7 +37,19 @@
     </div>   
 
 <script>
- document.getElementById('registrationForm').addEventListener('submit', function(event) {
+function displayMessage(message, type) {
+    const messageElement = document.getElementById('message');
+    if (!messageElement) {
+        const newMessage = document.createElement('div');
+        newMessage.id = 'message';
+        document.querySelector('.container').appendChild(newMessage);
+    }
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = message;
+    messageDiv.className = type; // Apply CSS styles based on 'success' or 'error'
+}
+
+document.getElementById('registrationForm').addEventListener('submit', function(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
@@ -61,18 +65,22 @@
         },
         body: urlEncodedData,
     })
-   .then(response => response.json())
-   .then(data => {
-        console.log('Success:', data);
-        // Display the secret key to the user
-        document.getElementById('secretKey').textContent = data.secretKey;
-        document.getElementById('secretKeyDisplay').style.display = 'block';
+.then(response => response.json())
+.then(data => {
+        if (data.message) {
+            console.log('Registration successful:', data);
+            displayMessage('Registration successful!', 'success');
+            document.getElementById('registrationForm').reset(); // Reset form fields
+        } else {
+            console.log('Registration failed:', data.error);
+            throw new Error('Username or Email already exists');
+        }
     })
-   .catch((error) => {
+.catch((error) => {
         console.error('Error:', error);
+        displayMessage('Registration failed: ' + error.message, 'error');
     });
 });
-
 </script>
 
 </body>
