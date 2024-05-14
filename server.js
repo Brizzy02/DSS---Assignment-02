@@ -79,7 +79,7 @@ app.get("/login", csrfProtection, (req, res) => {
 
 app.use((err, req, res, next) => {
     if (err.code === "EBADCSRFTOKEN") {
-        // handle CSRF token errors here
+        // Handle CSRF token errors
         res.status(403);
         res.send("CSRF token mismatch, please refresh the page or try again.");
     } else {
