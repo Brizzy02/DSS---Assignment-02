@@ -17,24 +17,34 @@
 </form>
 
 <script>
+  // Function to handle form submission for creating a new post
   const postForm = document.getElementById("postForm");
 
   postForm.addEventListener("submit", function(event) {
     event.preventDefault();
+    // Get the title and body from the form
     const title = document.getElementById("postTitle").value;
     const body = document.getElementById("postBody").value;
+    // Check if both title and body are not empty
     if (title.trim() && body.trim()) {
+      // Create a new post object with the current date, title, and body
       const post = { id: Date.now(), title, body };
+      // Get the posts from local storage
       const posts = JSON.parse(localStorage.getItem("posts")) || [];
+      // Add the new post to the posts array
       posts.push(post);
+      // Update the posts in local storage
       localStorage.setItem("posts", JSON.stringify(posts));
+      // Redirect to the home page
       window.location.href = "home";
       window.location.href = "home";
     } else {
+      // Show an alert if the title or body is empty
       alert("Please enter both title and body.");
     }
   });
 </script>
+
 
 </body>
 </html>

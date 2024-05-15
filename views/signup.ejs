@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Blog - Registration</title>
-    <link rel="stylesheet" href="../Styles/index.css">
+    <meta charset="UTF-8"> <!-- Specifies the character encoding for the HTML document -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Makes the webpage responsive on mobile devices -->
+    <title>Simple Blog - Registration</title> <!-- Sets the title of the webpage -->
+    <link rel="stylesheet" href="../Styles/index.css"> <!-- Links to the external CSS file -->
 </head>
 <body>
     <header>
-        <h1 class="heading">Simple Blog</h1>
-        <h3 class="title">Login & Registration Form</h3>
+        <h1 class="heading">Simple Blog</h1> <!-- Main heading of the webpage -->
+        <h3 class="title">Login & Registration Form</h3> <!-- Subheading indicating the purpose of the page -->
     </header>
     <div class="main-container">
         <div class="container">
             <div class="btn-group">
-                <a href="/index" class="signup">Login</a>
-                <a href="/signup" class="signup">Signup</a>
+                <a href="/index" class="signup">Login</a> <!-- Link to the login page -->
+                <a href="/signup" class="signup">Signup</a> <!-- Link to the signup page -->
             </div>
             <div class="form-section">
                 <div class="login-box">
                     <form id="registrationForm" action="/signup" method="post">
-                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <input type="text" id="username" placeholder="username" name="username" required>
-                        <input type="email" id="email ele" placeholder="youremail@email.com" name="email" required>
-                        <input type="password" id="password ele" placeholder="password" name="password" required>
-                        <button type="submit" id="clkbtn">Sign Up</button>
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>"> <!-- CSRF token for security -->
+                        <input type="text" id="username" placeholder="username" name="username" required> <!-- Input field for username -->
+                        <input type="email" id="email ele" placeholder="youremail@email.com" name="email" required> <!-- Input field for email -->
+                        <input type="password" id="password ele" placeholder="password" name="password" required> <!-- Input field for password -->
+                        <button type="submit" id="clkbtn">Sign Up</button> <!-- Submit button for the form -->
                     </form>
                     <!-- Placeholder for displaying the secret key -->
                     <div id="secretKeyDisplay" style="display: none;">
-                        <p>Your secret key is: <span id="secretKey"></span></p>
-                        <p>Please add this key to your Google Authenticator app.</p>
+                        <p>Your secret key is: <span id="secretKey"></span></p> <!-- Displays the secret key -->
+                        <p>Please add this key to your Google Authenticator app.</p> <!-- Instructions for the user -->
                     </div>
                 </div>
             </div>
@@ -37,6 +37,7 @@
     </div>   
 
 <script>
+// Function to display messages to the user
 function displayMessage(message, type) {
     const messageElement = document.getElementById('message');
     if (!messageElement) {
@@ -49,6 +50,7 @@ function displayMessage(message, type) {
     messageDiv.className = type; // Apply CSS styles based on 'success' or 'error'
 }
 
+// Event listener for form submission
 document.getElementById('registrationForm').addEventListener('submit', function(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -58,6 +60,7 @@ document.getElementById('registrationForm').addEventListener('submit', function(
 
     const urlEncodedData = new URLSearchParams(data).toString();
 
+    // Fetch API call to submit the form data
     fetch('/signup', {
         method: 'POST',
         headers: {
@@ -65,8 +68,8 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         },
         body: urlEncodedData,
     })
-.then(response => response.json())
-.then(data => {
+   .then(response => response.json())
+   .then(data => {
         if (data.message) {
             console.log('Registration successful:', data);
             displayMessage('Registration successful!', 'success');
@@ -78,7 +81,7 @@ document.getElementById('registrationForm').addEventListener('submit', function(
             throw new Error('Username or Email already exists');
         }
     })
-.catch((error) => {
+   .catch((error) => {
         console.error('Error:', error);
         displayMessage('Registration failed: ' + error.message, 'error');
     });

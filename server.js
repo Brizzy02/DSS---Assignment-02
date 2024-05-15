@@ -52,7 +52,7 @@ app.get("/", csrfProtection, (req, res) => {
     // Pass the CSRF token to the template
     res.render("index", {
         sessionId: req.sessionID,
-        csrfToken: req.csrfToken()  // Ensure this is added
+        csrfToken: req.csrfToken()  
     });
 });
 
@@ -60,7 +60,7 @@ app.get("/signup", csrfProtection, (req, res) => {
     console.log("Rendering signup page with CSRF Token:", req.csrfToken());
     res.render("signup", {
         csrfToken: req.csrfToken(),  // Pass CSRF token to the view
-        sessionId: req.sessionID    // Only pass this if it's actually used in the view
+        sessionId: req.sessionID    
     });
 });
 
@@ -130,7 +130,7 @@ function sanitizeInput(input) {
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // Add this line to parse JSON request bodies
+app.use(express.json()); 
 
 app.post('/posts',csrfProtection, async (req, res) => {
     const { title, body } = req.body;
@@ -156,7 +156,7 @@ app.post('/posts',csrfProtection, async (req, res) => {
 });
 
 app.get('/posts', async (req, res) => {
-    const searchTerm = req.query.searchTerm; // Assuming searchTerm is passed as a query parameter
+    const searchTerm = req.query.searchTerm; // Get the search term from the query string
     console.log('Search term:', searchTerm); // Log the search term
 
     try {
@@ -225,29 +225,33 @@ app.delete('/posts/:id', async (req, res) => {
         console.error('Error deleting post:', error);
         res.status(500).json({ error: 'An error occurred while deleting the post.' });
     }
-});
+});// Route to retrieve a specific post by its ID
 app.get('/posts/:id', async (req, res) => {
+    // Extract the post ID from the request parameters
     const postId = req.params.id;
+    // Extract the user ID from the request query parameters
     const userId = req.query.userId;
 
-    console.log('Retrieving post with ID:', postId);
-    console.log('User ID:', userId);
-
+    
     try {
+        // SQL query to fetch the post with the specified ID
         const query = 'SELECT * FROM posts WHERE id = $1';
         const result = await pool.query(query, [postId]);
         const post = result.rows[0];
 
+        // Check if the post exists
         if (!post) {
             console.log('Post not found');
             return res.status(404).json({ error: 'Post not found' });
         }
 
-        if (post.user_id !== parseInt(userId)) {
+        // Check if the current user is authorized to access the post
+        if (post.user_id!== parseInt(userId)) {
             console.log('Unauthorized access');
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
+        // If the post exists and the user is authorized, return the post
         res.json(post);
     } catch (error) {
         console.error('Error retrieving post:', error);
@@ -256,37 +260,50 @@ app.get('/posts/:id', async (req, res) => {
 });
 
 
+
+// Route to retrieve the user ID from the session
 app.get('/user', (req, res) => {
+    // Extract the user ID from the session
     const userId = req.session.userId;
     console.log('User ID in session:', userId);
 
+    // If the user ID exists in the session, return it
     if (userId) {
         res.json({ id: userId });
     } else {
+        // If the user ID does not exist, return an error indicating the user is not authenticated
         res.status(401).json({ error: 'User not authenticated' });
     }
 });
 
+// Route to update a specific post by its ID
 app.put('/posts/:id', async (req, res) => {
+    // Extract the post ID from the request parameters
     const postId = req.params.id;
+    // Extract the title and body from the request body
     const { title, body } = req.body;
+    // Extract the user ID from the session
     const userId = req.session.userId;
 
+    // Check if the user is authenticated
     if (!userId) {
         return res.status(401).json({ error: 'User not authenticated' });
     }
 
     try {
+        // SQL query to update the post with the specified ID, title, and body
         const query = 'UPDATE posts SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *';
         const values = [title, body, postId, userId];
 
         const result = await pool.query(query, values);
         const updatedPost = result.rows[0];
 
+        // Check if the post was successfully updated
         if (!updatedPost) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
+        // If the post was successfully updated, return the updated post
         res.json(updatedPost);
     } catch (error) {
         console.error('Error updating post:', error);
@@ -294,25 +311,28 @@ app.put('/posts/:id', async (req, res) => {
     }
 });
 
+// Route to handle login requests with CSRF protection
 app.post('/login',csrfProtection, (req, res, next) => {
     console.log("Login attempt received");
     console.log("Email:", req.body.email);
     console.log("Password:", req.body.password);
     console.log("Captcha:", req.body.captcha);
     console.log("OTP:", req.body.otp);
+    console.log("CSRF Token:", req.csrfToken());
 
+    // Destructure and sanitize input from the request body
     const { email, password, captcha, otp } = req.body;
     const sanitizedEmail = sanitizeInput(email);
     const sanitizedPassword = sanitizeInput(password);
     const sanitizedOtp = sanitizeInput(otp);
 
-
-    if (captcha !== req.session.captcha) {
+    // Verify the captcha
+    if (captcha!== req.session.captcha) {
         console.log("Captcha verification failed");
         return res.render('index', { error: 'Captcha verification failed', csrfToken: req.csrfToken() });
     }
 
-    // Query the database for the user
+    // Query the database to find the user by email
     pool.query('SELECT * FROM users WHERE email = $1', [sanitizedEmail], (error, results) => {
         if (error) {
             console.error("Database query error:", error);
@@ -324,7 +344,9 @@ app.post('/login',csrfProtection, (req, res, next) => {
             return res.render('index', { error: 'No user found with the provided email', csrfToken: req.csrfToken() });
         }
 
+        // Retrieve the first user from the query results
         const user = results.rows[0];
+        // Compare the provided password with the hashed password stored in the database
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) {
                 console.error("Error comparing passwords:", err);
@@ -356,7 +378,7 @@ app.post('/login',csrfProtection, (req, res, next) => {
                 return res.render('index', { error: 'Invalid OTP', csrfToken: req.csrfToken() });
             }
 
-            // Success
+            // If all verifications pass, set the user ID in the session and redirect to the home page
             req.session.userId = user.id;
             req.session.save(err => {
                 if (err) {
@@ -367,6 +389,7 @@ app.post('/login',csrfProtection, (req, res, next) => {
         });
     });
 });
+
 
 
 const svgCaptcha = require('svg-captcha');
@@ -396,11 +419,12 @@ app.post('/signout', (req, res, next) => {
     });
 });
 
-
+// Route to handle signup requests
 app.post('/signup', async (req, res) => {
     console.log('Signup request received');
     console.log('Request body:', req.body);
 
+    // Destructure and sanitize input from the request body
     const { username, email, password } = req.body;
     const sanitizedUsername = sanitizeInput(username);
     const sanitizedEmail = sanitizeInput(email);
@@ -440,8 +464,6 @@ app.post('/signup', async (req, res) => {
         // This is a placeholder for the actual implementation
         console.log('Secret key:', secret.base32);
 
-        
-
         res.json({ message: 'User created successfully', userId: newUser.id, secretKey: secret.base32 });
     } catch (error) {
         console.error('Signup error:', error);
@@ -452,34 +474,42 @@ app.post('/signup', async (req, res) => {
 
 
 
-
-
+// Route to handle signout requests
 app.get('/signout', (req, res) => {
+    // Render the signout page
     res.render('signout');
 });
 
+// Middleware to handle errors globally
 app.use((err, req, res, next) => {
+    // Log the error stack trace for debugging
     console.error(err.stack);
+    // Send a generic error message to the client
     res.status(500).send('Something broke!');
 });
 
+// Start the server
 app.listen(port, () => {
+    // Log the server's port
     console.log(`Server running at http://localhost:${port}`);
 });
 
+// Log the database URL for debugging
 console.log('Database URL:', process.env.DATABASE_URL);
 
 // Test query to check database connection
 pool.query('SELECT NOW()', (err, res) => {
- if (err) {
-   console.error('Database connection error:', err);
- } else {
-   console.log('Database connection successful');
- }
+    if (err) {
+        console.error('Database connection error:', err);
+    } else {
+        console.log('Database connection successful');
+    }
 });
 
+// Middleware to handle errors globally
 app.use((err, req, res, next) => {
+    // Log the error stack trace for debugging
     console.error(err.stack);
+    // Send a generic error message to the client
     res.status(500).send('Something broke!');
 });
-

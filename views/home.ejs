@@ -8,17 +8,19 @@
 <body>
 <h1>Simple Blog</h1>
 
+<!-- Search container for finding posts -->
 <div class="search-container">
   <input type="text" id="searchBox" placeholder="Search posts..." onkeyup="searchPosts()">
-  
 </div>
 
-
+<!-- Container for displaying posts -->
 <div id="posts"></div>
 
+<!-- Buttons for creating a new post and signing out -->
 <button onclick="showNewPostForm()">New Post</button>
 <button onclick="signOut()">Sign Out</button>
 
+<!-- Form for creating a new post, initially hidden -->
 <div id="newPostForm" style="display: none;">
  <h2>New Post</h2>
  <form id="postForm">
@@ -30,7 +32,7 @@
  </form>
 </div>
 
-
+<!-- Form for editing an existing post, initially hidden -->
 <div id="editPostForm" style="display: none;">
   <h2>Edit Post</h2>
   <form id="editForm">
@@ -44,8 +46,11 @@
  </div>
 
 <script>
+ // Session ID for user authentication
  const sessionId = '<%= sessionId %>';
  console.log('Session ID:', sessionId);
+
+ // Function to create a new post
  function createPost(title, body) {
     fetch('/posts', {
       method: 'POST',
@@ -54,15 +59,15 @@
       },
       body: JSON.stringify({ title, body }),
     })
-    .then(response => response.json())
-    .then(data => {
+   .then(response => response.json())
+   .then(data => {
       console.log('Post created:', data);
       renderPosts();
     })
-    .catch(error => console.error('Error:', error));
+   .catch(error => console.error('Error:', error));
  }
 
-
+ // Function to sign out the user
  function signOut() {
     fetch('/signout', {
       method: 'POST',
@@ -70,20 +75,21 @@
         'Content-Type': 'application/json',
       },
     })
-    .then(response => {
+   .then(response => {
       if (response.ok) {
         window.location.href = '/'; // Redirect to the index page
       } else {
         console.error('Sign out failed');
       }
     })
-    .catch(error => console.error('Error:', error));
+   .catch(error => console.error('Error:', error));
  }
 
+ // Function to render posts on the page
  function renderPosts() {
     fetch('/posts')
-      .then(response => response.json())
-      .then(posts => {
+     .then(response => response.json())
+     .then(posts => {
         const postsContainer = document.getElementById("posts");
         postsContainer.innerHTML = "";
         posts.forEach(post => {
@@ -97,24 +103,19 @@
           postsContainer.appendChild(postElement);
         });
       })
-      .catch(error => console.error('Error:', error));
+     .catch(error => console.error('Error:', error));
 }
 
-
-function editPost(postId) {
+ // Function to edit a post
+ function editPost(postId) {
     console.log('Editing post with ID:', postId);
-
-    // Get the userId from the server-side session
     fetch('/user')
-      .then(response => response.json())
-      .then(user => {
+     .then(response => response.json())
+     .then(user => {
         const userId = user.id;
         console.log('User ID:', userId);
-
         fetch(`/posts/${postId}?userId=${userId}`)
-          .then(response => {
-            console.log('Response status:', response.status);
-
+         .then(response => {
             if (response.ok) {
               return response.json();
             } else if (response.status === 403) {
@@ -123,7 +124,7 @@ function editPost(postId) {
               throw new Error('An error occurred while retrieving the post');
             }
           })
-          .then(post => {
+         .then(post => {
             if (post) {
               document.getElementById('editPostId').value = post.id;
               document.getElementById('editPostTitle').value = post.title;
@@ -131,23 +132,19 @@ function editPost(postId) {
               document.getElementById('editPostForm').style.display = 'block';
             }
           })
-          .catch(error => {
+         .catch(error => {
             console.error('Error:', error);
             alert(error.message);
           });
       })
-      .catch(error => {
+     .catch(error => {
         console.error('Error retrieving user:', error);
         alert('An error occurred while retrieving the user.');
       });
 }
 
-
-
-
-
-
-function updatePost(postId, title, body) {
+ // Function to update a post
+ function updatePost(postId, title, body) {
     fetch(`/posts/${postId}`, {
       method: 'PUT',
       headers: {
@@ -155,36 +152,36 @@ function updatePost(postId, title, body) {
       },
       body: JSON.stringify({ title, body }),
     })
-    .then(response => response.json())
-    .then(data => {
+   .then(response => response.json())
+   .then(data => {
       console.log('Post updated:', data);
       document.getElementById('editPostForm').style.display = 'none';
       renderPosts();
     })
-    .catch(error => console.error('Error:', error));
+   .catch(error => console.error('Error:', error));
 }
 
-
+ // Function to delete a post
  function deletePost(postId) {
     fetch(`/posts/${postId}`, {
         method: 'DELETE',
     })
-    .then(response => {
+   .then(response => {
         if (response.ok) {
             renderPosts();
         } else {
             console.error('Delete post failed');
         }
     })
-    .catch(error => console.error('Error:', error));
+   .catch(error => console.error('Error:', error));
 }
 
+ // Function to show the new post form
  function showNewPostForm() {
     document.getElementById("newPostForm").style.display = "block";
  }
 
- 
- 
+ // Event listener for the new post form submission
  document.getElementById("postForm").addEventListener("submit", function(event) {
     event.preventDefault();
     const title = document.getElementById("postTitle").value;
@@ -199,6 +196,7 @@ function updatePost(postId, title, body) {
     }
  });
 
+ // Event listener for the edit post form submission
  document.getElementById('editForm').addEventListener('submit', function(event) {
     event.preventDefault();
     const postId = document.getElementById('editPostId').value;
@@ -207,32 +205,34 @@ function updatePost(postId, title, body) {
     updatePost(postId, title, body);
 });
 
+ // Initial rendering of posts when the page loads
  renderPosts();
 
- // Seach function
+ // Function to search for posts
  function searchPosts() {
     const searchTerm = document.getElementById('searchBox').value;
     fetch(`/posts?searchTerm=${encodeURIComponent(searchTerm)}`)
-       .then(response => response.json())
-       .then(posts => {
+      .then(response => response.json())
+      .then(posts => {
             renderPosts(posts);
         })
-       .catch(error => console.error('Error:', error));
+      .catch(error => console.error('Error:', error));
 }
 
-
-function renderPosts(posts = null) {
+ // Function to render posts, either from a provided list or by fetching from the server
+ function renderPosts(posts = null) {
     if (posts) {
         displayPosts(posts);
     } else {
         fetch('/posts')
-            .then(response => response.json())
-            .then(posts => displayPosts(posts))
-            .catch(error => console.error('Error:', error));
+           .then(response => response.json())
+           .then(posts => displayPosts(posts))
+           .catch(error => console.error('Error:', error));
     }
 }
 
-function displayPosts(posts) {
+ // Function to display posts on the page
+ function displayPosts(posts) {
     const postsContainer = document.getElementById("posts");
     postsContainer.innerHTML = ""; // Clear previous posts
     posts.forEach(post => {
@@ -249,33 +249,12 @@ function displayPosts(posts) {
     });
 }
 
-
-document.addEventListener('DOMContentLoaded', function() {
+ // Event listener to render posts when the document is fully loaded
+ document.addEventListener('DOMContentLoaded', function() {
     renderPosts(); // Call renderPosts initially when the document is ready
 });
 
-document.getElementById("postForm").addEventListener("submit", function(event) {
-    event.preventDefault();
-    const title = document.getElementById("postTitle").value;
-    const body = document.getElementById("postBody").value;
-    if (title.trim() && body.trim()) {
-        createPost(title, body);
-        document.getElementById("postTitle").value = "";
-        document.getElementById("postBody").value = "";
-        document.getElementById("newPostForm").style.display = "none";
-    } else {
-        alert("Please enter both title and body.");
-    }
-});
-
-document.getElementById('editForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const postId = document.getElementById('editPostId').value;
-    const title = document.getElementById('editPostTitle').value;
-    const body = document.getElementById('editPostBody').value;
-    updatePost(postId, title, body);
-});
-
+ // Duplicate event listeners for form submissions, removed for brevity
 </script>
 
 </body>

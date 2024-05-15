@@ -1,33 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Blog - Edit Post</title>
-</head>
-<body>
-<h1>Edit Post</h1>
-
-<form id="postForm">
-  <label for="postTitle">Title:</label><br>
-  <input type="text" id="postTitle" name="postTitle"><br>
-  <label for="postBody">Body:</label><br>
-  <textarea id="postBody" name="postBody"></textarea><br>
-  <button type="submit">Save Post</button>
-</form>
-
 <script>
+  // Function to handle form submission for editing a post
   const queryParams = new URLSearchParams(window.location.search);
   const postId = queryParams.get('postId');
 
+  // Get the form elements for title and body
   const postForm = document.getElementById("postForm");
   const postTitleInput = document.getElementById("postTitle");
   const postBodyInput = document.getElementById("postBody");
 
+  // Get the posts from local storage
   const posts = JSON.parse(localStorage.getItem("posts")) || [];
   const postToEdit = posts.find(post => post.id === parseInt(postId));
 
   if (postToEdit) {
+    // Pre-fill the form with the post's title and body
     postTitleInput.value = postToEdit.title;
     postBodyInput.value = postToEdit.body;
   }
@@ -37,19 +23,19 @@
     const title = postTitleInput.value;
     const body = postBodyInput.value;
     if (title.trim() && body.trim()) {
+      // Update the post in local storage
       const updatedPosts = posts.map(post => {
         if (post.id === parseInt(postId)) {
-          return { ...post, title, body };
+          return {...post, title, body };
         }
         return post;
       });
       localStorage.setItem("posts", JSON.stringify(updatedPosts));
+      // Redirect to the index page
       window.location.href = "index";
     } else {
+      // Show an alert if the title or body is empty
       alert("Please enter both title and body.");
     }
   });
 </script>
-
-</body>
-</html>
