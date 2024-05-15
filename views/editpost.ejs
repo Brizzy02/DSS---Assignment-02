@@ -1,3 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Blog - Edit Post</title>
+</head>
+<body>
+<h1>Edit Post</h1>
+
+<form id="postForm" method="post" action="/posts">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <label for="postTitle">Title:</label><br>
+  <input type="text" id="postTitle" name="postTitle"><br>
+  <label for="postBody">Body:</label><br>
+  <textarea id="postBody" name="postBody"></textarea><br>
+  <button type="submit">Save Post</button>
+</form>
+
 <script>
   // Function to handle form submission for editing a post
   const queryParams = new URLSearchParams(window.location.search);
